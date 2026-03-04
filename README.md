@@ -75,5 +75,3 @@ cursor-plugin-product-research/
 │       └── research-prompt-template.md
 └── README.md
 ```
-
-`plugin.json`의 `author.name`은 팀/조직 이름으로 바꿔서 사용하면 됩니다.
