@@ -1,13 +1,11 @@
 {
   "name": "hanaplugin",
   "owner": {
-    "name": "landfill",
-    "email": ""
+    "name": "landfill"
   },
   "metadata": {
     "description": "프로덕트 시장조사 스킬 플러그인",
-    "version": "1.0.0",
-    "pluginRoot": "plugins"
+    "version": "1.0.0"
   },
   "plugins": [
     {
