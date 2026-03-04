@@ -14,4 +14,4 @@ Cursor Dashboard → Settings → Plugins → Team Marketplaces → Import 후 �
 https://github.com/landfill/hanaplugin
 ```
 
-상세 사용법은 [product-research/README.md](product-research/README.md) 참고.
+상세 사용법은 [plugins/product-research/README.md](plugins/product-research/README.md) 참고.
