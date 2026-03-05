@@ -1,4 +1,4 @@
-# Product Research — Cursor 플러그인
+# Product Toolkit — Cursor 플러그인
 
 프로덕트 기획자를 위한 Cursor 스킬 플러그인입니다.
 
@@ -29,14 +29,14 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 ### 1단계: 이 폴더를 GitHub 저장소로 올리기
 
 1. GitHub에 **새 저장소**를 만듭니다 (조직/팀 계정 권장).
-2. 이 폴더(`cursor-plugin-product-research/`) 내용을 그 저장소에 푸시합니다.
+2. 이 폴더 내용을 그 저장소에 푸시합니다.
 
    ```bash
-   cd cursor-plugin-product-research
+   cd product-toolkit
    git init
    git add .
-   git commit -m "프로덕트 시장조사 스킬 플러그인 추가"
-   git remote add origin https://github.com/YOUR_ORG/product-research-plugin.git
+   git commit -m "프로덕트 기획 툴킷 플러그인 추가"
+   git remote add origin https://github.com/YOUR_ORG/product-toolkit.git
    git push -u origin main
    ```
 
@@ -55,7 +55,7 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 
 ### 3단계: 팀원이 플러그인 설치
 
-- 팀 마켓플레이스가 연결되면, 팀원은 Cursor 설정의 **Rules, Skills** 또는 **Plugins**에서 팀 마켓플레이스를 보고 **product-research** 플러그인을 설치할 수 있습니다.
+- 팀 마켓플레이스가 연결되면, 팀원은 Cursor 설정의 **Rules, Skills** 또는 **Plugins**에서 팀 마켓플레이스를 보고 **product-toolkit** 플러그인을 설치할 수 있습니다.
 - 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의" 등으로 스킬이 자동 후보로 뜹니다.
 
 ---
