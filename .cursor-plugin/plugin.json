@@ -1,9 +1,9 @@
 {
   "name": "product-research",
-  "version": "1.0.0",
-  "description": "손팀장님 리서치 프롬프트를 스킬로. 프로덕트 아이디어를 체계적인 시장조사 및 기획서로 발전시키는 인터랙티브 워크플로우. 시장조사, 프로덕트 기획, 아이디어 검증, 사업계획, 경쟁사 분석, MVP 기획이 필요할 때 사용.",
+  "version": "1.1.0",
+  "description": "프로덕트 기획자를 위한 스킬 모음. 1) 프로덕트 아이디어를 체계적인 시장조사 및 기획서로 발전시키는 인터랙티브 워크플로우. 2) 마크다운 태깅 정의 데이터를 기반으로 PPTX 태깅 정의서를 자동 생성.",
   "author": {
-    "name": "손팀장님",
+    "name": "손님, 김님",
     "email": ""
   },
   "keywords": [
@@ -13,7 +13,10 @@
     "idea-validation",
     "mvp",
     "competitor-analysis",
-    "business-plan"
+    "business-plan",
+    "tagging-definition",
+    "pptx-generation",
+    "analytics-tagging"
   ],
   "skills": "skills/"
 }

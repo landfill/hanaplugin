@@ -1,6 +1,6 @@
 ---
 name: product-research
-description: "손팀장님 리서치 프롬프트를 스킬로. 프로덕트 아이디어를 체계적인 시장조사 및 기획서로 발전시키는 인터랙티브 워크플로우. 시장조사, 프로덕트 기획, 아이디어 검증, 사업계획, 경쟁사 분석, MVP 기획이 필요할 때 사용. Use when user mentions market research, product planning, idea validation, business plan, competitor analysis, or MVP planning."
+description: "손님 리서치 프롬프트를 스킬로. 프로덕트 아이디어를 체계적인 시장조사 및 기획서로 발전시키는 인터랙티브 워크플로우. 시장조사, 프로덕트 기획, 아이디어 검증, 사업계획, 경쟁사 분석, MVP 기획이 필요할 때 사용. Use when user mentions market research, product planning, idea validation, business plan, competitor analysis, or MVP planning."
 ---
 
 # 프로덕트 시장조사 & 기획 프롬프트 빌더

@@ -1,0 +1,4 @@
+# 태깅 정의서 스크립트 의존성
+# 사용법: pip install -r requirements.txt
+python-pptx>=0.6.21
+openpyxl>=3.1.0
