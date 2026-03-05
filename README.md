@@ -1,11 +1,19 @@
 # Product Research — Cursor 플러그인
 
-프로덕트 아이디어를 체계적인 시장조사 및 기획서로 발전시키는 Cursor 스킬 플러그인입니다.
+프로덕트 기획자를 위한 Cursor 스킬 플러그인입니다.
 
-## 스킬 설명
+## 포함 스킬
+
+### 1. product-research (시장조사 & 기획)
 
 - **시장조사**, **프로덕트 기획**, **아이디어 검증**, **사업계획**, **경쟁사 분석**, **MVP 기획**이 필요할 때 사용
 - 8단계 인터뷰(페르소나별: 비즈니스/기획자, PM, 창업가) 후 맞춤형 리서치 프롬프트 생성
+
+### 2. tagging-definition (태깅 정의서 자동 생성)
+
+- **태깅 정의서 작성**, **이벤트 정의**, **프로퍼티 정의**, **Amplitude 태깅 기획**이 필요할 때 사용
+- 대화형 인터뷰로 태깅 항목 수집 → 마크다운 데이터 파일 생성 → PPTX/XLSX 자동 변환
+- 템플릿 기반 슬라이드 복제로 일관된 서식 보장, 프로젝트 루트 자동 탐지로 이미지 경로 무관하게 삽입
 
 ---
 
@@ -48,7 +56,7 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 ### 3단계: 팀원이 플러그인 설치
 
 - 팀 마켓플레이스가 연결되면, 팀원은 Cursor 설정의 **Rules, Skills** 또는 **Plugins**에서 팀 마켓플레이스를 보고 **product-research** 플러그인을 설치할 수 있습니다.
-- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증" 등으로 스킬이 자동 후보로 뜹니다.
+- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의" 등으로 스킬이 자동 후보로 뜹니다.
 
 ---
 
@@ -66,11 +74,24 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 ├── .cursor-plugin/
 │   └── plugin.json
 ├── skills/
-│   └── product-research/
+│   ├── product-research/
+│   │   ├── SKILL.md
+│   │   ├── questions-business.md
+│   │   ├── questions-pm.md
+│   │   ├── questions-founder.md
+│   │   └── research-prompt-template.md
+│   └── tagging-definition/
 │       ├── SKILL.md
-│       ├── questions-business.md
-│       ├── questions-pm.md
-│       ├── questions-founder.md
-│       └── research-prompt-template.md
+│       ├── reference.md
+│       ├── template/
+│       │   └── 태깅정의서_템플릿.pptx
+│       └── scripts/
+│           ├── run_generate.py
+│           ├── generate_pptx.py
+│           ├── generate_xlsx.py
+│           ├── parse_data_md.py
+│           ├── requirements.txt
+│           └── 태깅정의_데이터_샘플.md
+├── .gitignore
 └── README.md
 ```
