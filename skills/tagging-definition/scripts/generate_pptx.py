@@ -420,13 +420,30 @@ def main():
                 table.cell(r + 1, c).text = str(row[c]) if c < len(row) else ""
         return table_shape
 
-    def add_picture(slide, image_path: Path, left_inches: float = 0.5, top_inches: float = 1.5, width_inches: float = 4.0):
+    def add_picture(slide, image_path: Path, left_inches: float = 0.5, top_inches: float = 1.5,
+                    width_inches: float = WIREFRAME_WIDTH_INCH, max_height_inches: float = WIREFRAME_HEIGHT_INCH):
         from pptx.util import Inches
         try:
+            from PIL import Image as PILImage
+            with PILImage.open(str(image_path)) as img:
+                img_w, img_h = img.size
+            aspect = img_h / img_w  # 세로/가로 비율
+
+            # 가로 기준으로 height 계산 후 영역 초과 여부 판단
+            calc_height = width_inches * aspect
+            if calc_height > max_height_inches:
+                # 모바일 세로 캡처처럼 세로가 긴 경우: height 기준으로 맞춤
+                final_height = max_height_inches
+                final_width = max_height_inches / aspect
+            else:
+                # PC 가로 캡처처럼 가로가 넓은 경우: width 기준으로 맞춤
+                final_width = width_inches
+                final_height = calc_height
+
             slide.shapes.add_picture(
                 str(image_path),
                 Inches(left_inches), Inches(top_inches),
-                Inches(width_inches), Inches(width_inches * 0.75),
+                Inches(final_width), Inches(final_height),
             )
         except Exception as e:
             print(f"경고: 이미지 삽입 실패 {image_path}: {e}", file=sys.stderr)
