@@ -299,7 +299,7 @@ PPT와 **동일한 데이터·표 기준**으로 .xlsx 생성. 시트 또는 영
 
 스킬의 **스크립트·데이터 형식**은 아래처럼 검증한다. **의존성은 실행 시 자동 설치**되므로 미리 `pip install` 할 필요 없다.
 
-1. **샘플 데이터로 엑셀 생성** (`{SKILL_DIR}` = 이 SKILL.md의 디렉토리 절대 경로):
+1. **샘플 데이터로 엑셀 생성**:
    ```bash
    python3 {SKILL_DIR}/scripts/run_generate.py xlsx \
      {SKILL_DIR}/scripts/태깅정의_데이터_샘플.md \
