@@ -15,6 +15,12 @@
 - 대화형 인터뷰로 태깅 항목 수집 → 마크다운 데이터 파일 생성 → PPTX/XLSX 자동 변환
 - 템플릿 기반 슬라이드 복제로 일관된 서식 보장, 프로젝트 루트 자동 탐지로 이미지 경로 무관하게 삽입
 
+### 3. socrates (소크라테스식 기획 컨설팅)
+
+- **바이브 코딩 입문자**, **아이디어 구체화**, **기획 문서 자동 생성**이 필요할 때 사용
+- 소크라테스식 21문답으로 아이디어를 정제 → PRD·TRD·User Flow·DB 설계·디자인 시스템·코딩 컨벤션 6개 문서 자동 생성
+- AI 코딩 파트너(Claude Code 등)가 즉시 개발을 시작할 수 있는 구조화된 기획 산출물 제공
+
 ---
 
 ## 팀 마켓플레이스에 올리는 방법 (Cursor Enterprise / Teams)
@@ -56,7 +62,7 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 ### 3단계: 팀원이 플러그인 설치
 
 - 팀 마켓플레이스가 연결되면, 팀원은 Cursor 설정의 **Rules, Skills** 또는 **Plugins**에서 팀 마켓플레이스를 보고 **product-toolkit** 플러그인을 설치할 수 있습니다.
-- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의" 등으로 스킬이 자동 후보로 뜹니다.
+- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의", "기획 컨설팅", "소크라테스" 등으로 스킬이 자동 후보로 뜹니다.
 
 ---
 
@@ -80,18 +86,31 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 │   │   ├── questions-pm.md
 │   │   ├── questions-founder.md
 │   │   └── research-prompt-template.md
-│   └── tagging-definition/
+│   ├── tagging-definition/
+│   │   ├── SKILL.md
+│   │   ├── reference.md
+│   │   ├── template/
+│   │   │   └── 태깅정의서_템플릿.pptx
+│   │   └── scripts/
+│   │       ├── run_generate.py
+│   │       ├── generate_pptx.py
+│   │       ├── generate_xlsx.py
+│   │       ├── parse_data_md.py
+│   │       ├── requirements.txt
+│   │       └── 태깅정의_데이터_샘플.md
+│   └── socrates/
 │       ├── SKILL.md
-│       ├── reference.md
-│       ├── template/
-│       │   └── 태깅정의서_템플릿.pptx
-│       └── scripts/
-│           ├── run_generate.py
-│           ├── generate_pptx.py
-│           ├── generate_xlsx.py
-│           ├── parse_data_md.py
-│           ├── requirements.txt
-│           └── 태깅정의_데이터_샘플.md
+│       └── references/
+│           ├── questions.md
+│           ├── conversation-rules.md
+│           ├── prd-template.md
+│           ├── trd-template.md
+│           ├── user-flow-template.md
+│           ├── database-design-template.md
+│           ├── design-system-template.md
+│           ├── coding-convention-template.md
+│           ├── tasks-template.md
+│           └── tasks-generation-rules.md
 ├── .gitignore
 └── README.md
 ```
