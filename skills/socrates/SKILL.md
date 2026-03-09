@@ -127,8 +127,8 @@ d) 기타 (원하는 이름을 직접 입력)
 
 ```
 1. Read 도구로 두 파일을 병렬(동시)로 읽기:
-   - .cursor/skills/socrates/references/questions.md
-   - .cursor/skills/socrates/references/conversation-rules.md
+   - references/questions.md
+   - references/conversation-rules.md
    (두 파일은 독립적이므로 순차가 아닌 병렬 Read로 시간 단축)
 2. 현재 컨텍스트에서 사용 가능한 도구를 확인하여 질문 도구를 1회 결정:
    - AskQuestion 사용 가능? → 세션 전체에서 AskQuestion 사용
@@ -168,8 +168,8 @@ d) 기타 (원하는 이름을 직접 입력)
 
 ```bash
 # 1단계: 두 파일 병렬 Read (순차 아님 — 동시에 호출하여 시간 단축)
-.cursor/skills/socrates/references/conversation-rules.md
-.cursor/skills/socrates/references/questions.md
+references/conversation-rules.md
+references/questions.md
 ```
 
 두 파일은 서로 독립적이므로 반드시 병렬로 읽어야 합니다. 이 파일들을 읽지 않으면 질문을 진행할 수 없습니다!
@@ -197,15 +197,20 @@ d) 기타 (원하는 이름을 직접 입력)
 
 **중요: TASKS.md는 이 스킬에서 생성하지 않습니다!**
 
-### Phase 3: Tasks Generator 호출
+### Phase 3: Tasks Generator 호출 (또는 Fallback)
 
-6개 문서 생성 완료 후, **Skill 도구**를 사용하여 `/tasks-generator`를 호출합니다.
+6개 문서 생성 완료 후, **Skill 도구**로 `tasks-generator` 호출을 시도합니다.
+
+- **tasks-generator 스킬이 있는 경우**: Skill 도구로 호출 → TDD/Worktree 규칙이 적용된 `docs/planning/06-tasks.md` 생성.
+- **tasks-generator 스킬이 없는 경우**: 사용자에게 다음을 안내합니다.  
+  "6개 기획 문서까지 생성이 완료되었습니다. TASKS(06-tasks.md)를 만들려면 `/tasks-generator` 스킬을 설치하거나, `references/tasks-template.md`와 `references/tasks-generation-rules.md`를 참고해 프로젝트 루트에 `docs/planning/06-tasks.md`를 수동으로 작성할 수 있습니다."
 
 ```
-Skill 도구 호출:
+Skill 도구 호출 시도:
 - skill: "tasks-generator"
 
-tasks-generator가 담당:
+(tasks-generator 없으면 위 Fallback 안내)
+tasks-generator가 있으면 담당:
 - TDD 워크플로우 규칙 적용
 - Git Worktree 설정 포함
 - Phase 번호 규칙 적용
@@ -223,8 +228,8 @@ tasks-generator가 담당:
 
 ```
 두 파일을 병렬(동시)로 Read:
-- .cursor/skills/socrates/references/conversation-rules.md
-- .cursor/skills/socrates/references/questions.md
+- references/conversation-rules.md
+- references/questions.md
 (순차 호출 금지 — 반드시 동시에 호출하여 대기 시간 단축)
 ```
 
@@ -257,7 +262,7 @@ questions.md에서 읽은 Q1~Q21을 아래 순서로 진행합니다:
 ## Reference 파일 구조
 
 ```
-.cursor/skills/socrates/references/
+skills/socrates/references/
 ├── questions.md              # Q1~Q21 질문 목록
 ├── conversation-rules.md     # 대화 규칙, 모호성 처리, MVP 캡슐
 ├── prd-template.md
@@ -293,15 +298,15 @@ questions.md에서 읽은 Q1~Q21을 아래 순서로 진행합니다:
 6개 문서 생성 완료 후:
 
 1. 사용자에게 완료 안내
-2. **Skill 도구로 /tasks-generator 호출**
+2. **Skill 도구로 tasks-generator 호출 시도**  
+   (해당 스킬이 없으면 위 Phase 3 Fallback 문구로 안내)
 
 ```
 6개 기획 문서 생성이 완료되었습니다!
 
 이제 TASKS.md를 생성합니다.
-TDD 워크플로우, Git Worktree, Phase 규칙이 적용됩니다.
-
-[Skill 도구로 tasks-generator 호출]
+tasks-generator 스킬이 있으면 호출하고, 없으면 수동 생성 방법을 안내합니다.
+(TDD 워크플로우, Git Worktree, Phase 규칙은 references/tasks-generation-rules.md 참고)
 ```
 
 ---

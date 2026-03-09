@@ -77,7 +77,7 @@
 **담당**: {specialist-type}
 
 **Git Worktree 설정**:
-\`\`\`bash
+```bash
 # 1. Worktree 생성
 git worktree add ../project-phase{N}-{feature} -b phase/{N}-{feature}
 cd ../project-phase{N}-{feature}
@@ -86,21 +86,21 @@ cd ../project-phase{N}-{feature}
 # git checkout main
 # git merge phase/{N}-{feature}
 # git worktree remove ../project-phase{N}-{feature}
-\`\`\`
+```
 
 **TDD 사이클**:
 
 1. **RED**: 테스트 작성 (실패 확인)
-   \`\`\`bash
+   ```bash
    # 테스트 파일: {테스트 경로}
    pytest {테스트 경로} -v  # Expected: FAILED
-   \`\`\`
+   ```
 
 2. **GREEN**: 최소 구현 (테스트 통과)
-   \`\`\`bash
+   ```bash
    # 구현 파일: {구현 경로}
    pytest {테스트 경로} -v  # Expected: PASSED
-   \`\`\`
+   ```
 
 3. **REFACTOR**: 리팩토링 (테스트 유지)
    - 코드 정리
@@ -146,13 +146,13 @@ cd ../project-phase{N}-{feature}
 **의존성**: T2.2 (TransactionRepository) - **Mock 사용으로 독립 개발 가능**
 
 **Mock 설정**:
-\`\`\`typescript
+```typescript
 // src/mocks/transactionMock.ts
 export const mockTransactionRepository = {
   create: vi.fn().mockResolvedValue({ id: 1, amount: 1000 }),
   getAll: vi.fn().mockResolvedValue([]),
 };
-\`\`\`
+```
 
 **TDD 사이클**: (위 템플릿과 동일)
 ```
