@@ -6,25 +6,9 @@
 
 <MANDATORY>
 **[MANDATORY RULE — TOOL INTERFACE]**
-모든 질의는 SKILL.md에서 세션 시작 시 결정된 도구(AskQuestion → AskUserQuestion → 마크다운 텍스트 순)로 수행한다.
+모든 질의는 **반드시 AskQuestion 도구**로 수행한다. 일반 채팅 텍스트로 질문하지 않는다.
 각 질문에 **구조화된 선택지(options)**를 포함하고, 자유입력이 필요하면 `"직접 입력"` 옵션을 마지막에 둔다.
 </MANDATORY>
-
-<HARD-GATE>
-**[MANDATORY RULE — NAMING CONVENTION]**
-
-사용자가 이벤트명 또는 프로퍼티명을 직접 입력한 경우, **반드시 형식을 검증한 뒤 다음 질문으로 넘어간다.** 형식이 맞지 않으면 거부하고 재입력을 요청한다. 사용자 확인 없이 자동 변환하지 않는다.
-
-| 대상 | 규칙 | 위반 예시 | 올바른 예시 |
-|------|------|-----------|-------------|
-| **이벤트 영문명** | `snake_case` 소문자만. 공백·대문자·camelCase 금지 | `ClickBtn`, `click-btn`, `Click_Btn` | `click_cert_btn` |
-| **프로퍼티 영문명(Event property)** | `camelCase`. 첫 글자 소문자, 이후 단어 첫 글자 대문자. 언더스코어 금지 | `fit_tab`, `FitTab`, `fittab` | `fitTab` |
-
-**검증 실패 시 처리**:
-1. 위반된 부분을 구체적으로 알린다. 예: "이벤트명은 snake_case여야 합니다. `ClickBtn` → `click_btn` 형태로 수정해 주세요."
-2. 올바른 형식의 예시를 제안한다.
-3. 사용자가 수정한 값을 다시 검증한 후 진행한다.
-</HARD-GATE>
 
 ### 2단계: 이벤트 수집 — 고정 질의 항목
 
