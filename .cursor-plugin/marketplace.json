@@ -12,7 +12,7 @@
   "plugins": [
     {
       "name": "product-toolkit",
-      "source": "./plugins/product-toolkit",
+      "source": "product-toolkit",
       "description": "프로덕트 기획자를 위한 스킬셋. 시장조사 및 기획서 워크플로우, 태깅 정의서 자동 생성, 소크라테스식 21문답 기획 컨설팅."
     }
   ]
