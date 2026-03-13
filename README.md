@@ -74,43 +74,47 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 
 ---
 
-## 플러그인 구조
+## 레포지토리 구조
 
 ```
 ├── .cursor-plugin/
-│   └── plugin.json
-├── skills/
-│   ├── product-research/
-│   │   ├── SKILL.md
-│   │   ├── questions-business.md
-│   │   ├── questions-pm.md
-│   │   ├── questions-founder.md
-│   │   └── research-prompt-template.md
-│   ├── tagging-definition/
-│   │   ├── SKILL.md
-│   │   ├── reference.md
-│   │   ├── template/
-│   │   │   └── 태깅정의서_템플릿.pptx
-│   │   └── scripts/
-│   │       ├── run_generate.py
-│   │       ├── generate_pptx.py
-│   │       ├── generate_xlsx.py
-│   │       ├── parse_data_md.py
-│   │       ├── requirements.txt
-│   │       └── 태깅정의_데이터_샘플.md
-│   └── socrates/
-│       ├── SKILL.md
-│       └── references/
-│           ├── questions.md
-│           ├── conversation-rules.md
-│           ├── prd-template.md
-│           ├── trd-template.md
-│           ├── user-flow-template.md
-│           ├── database-design-template.md
-│           ├── design-system-template.md
-│           ├── coding-convention-template.md
-│           ├── tasks-template.md
-│           └── tasks-generation-rules.md
+│   └── marketplace.json          ← Team Marketplace 정의
+├── plugins/
+│   └── product-toolkit/
+│       ├── .cursor-plugin/
+│       │   └── plugin.json       ← 플러그인 메타데이터
+│       └── skills/
+│           ├── product-research/
+│           │   ├── SKILL.md
+│           │   ├── questions-business.md
+│           │   ├── questions-pm.md
+│           │   ├── questions-founder.md
+│           │   └── research-prompt-template.md
+│           ├── tagging-definition/
+│           │   ├── SKILL.md
+│           │   ├── reference.md
+│           │   ├── template/
+│           │   │   └── 태깅정의서_템플릿.pptx
+│           │   └── scripts/
+│           │       ├── run_generate.py
+│           │       ├── generate_pptx.py
+│           │       ├── generate_xlsx.py
+│           │       ├── parse_data_md.py
+│           │       ├── requirements.txt
+│           │       └── 태깅정의_데이터_샘플.md
+│           └── socrates/
+│               ├── SKILL.md
+│               └── references/
+│                   ├── questions.md
+│                   ├── conversation-rules.md
+│                   ├── prd-template.md
+│                   ├── trd-template.md
+│                   ├── user-flow-template.md
+│                   ├── database-design-template.md
+│                   ├── design-system-template.md
+│                   ├── coding-convention-template.md
+│                   ├── tasks-template.md
+│                   └── tasks-generation-rules.md
 ├── .gitignore
 └── README.md
 ```
