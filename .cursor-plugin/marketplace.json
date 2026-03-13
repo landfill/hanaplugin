@@ -1,0 +1,19 @@
+{
+  "name": "hanaplugin",
+  "owner": {
+    "name": "손님, 김님",
+    "email": "bkkim@hanatour.com"
+  },
+  "metadata": {
+    "description": "프로덕트 기획자를 위한 스킬셋. 시장조사/기획, 태깅 정의서 자동 생성, 소크라테스식 기획 컨설팅.",
+    "version": "0.1.0",
+    "pluginRoot": "plugins"
+  },
+  "plugins": [
+    {
+      "name": "product-toolkit",
+      "source": "./plugins/product-toolkit",
+      "description": "프로덕트 기획자를 위한 스킬셋. 시장조사 및 기획서 워크플로우, 태깅 정의서 자동 생성, 소크라테스식 21문답 기획 컨설팅."
+    }
+  ]
+}
