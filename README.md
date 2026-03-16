@@ -71,7 +71,7 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 - [Cursor Plugins 문서](https://cursor.com/docs/plugins)
 - [팀 마켓플레이스 안내](https://cursor.com/docs/plugins#team-marketplaces)
 - [플러그인 빌드 가이드](https://cursor.com/docs/plugins/building.md)
-
+- [팀 마켓플레이스 Refresh 트러블슈팅 (포럼)](https://forum.cursor.com/t/team-marketplace-refresh-failing-since-mar-7-worked-fine-until-mar-6-public-repo-no-github-app-connected/154643) — 2.6 이후 `source` 경로 파싱 변경, 올바른 디렉터리 구조 등 해결 사례
 ---
 
 ## 레포지토리 구조
