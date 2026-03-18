@@ -106,7 +106,7 @@ def _xlsx_to_rows_stdlib(path: Path, sheet_name: str | None = None) -> list[list
                 max_col = max(max_col, c)
 
                 val_el = cell.find("s:v", _NS)
-                raw = val_el.text if val_el is not None else ""
+                raw = (val_el.text or "") if val_el is not None else ""
 
                 cell_type = cell.get("t", "")
                 if cell_type == "s" and raw:

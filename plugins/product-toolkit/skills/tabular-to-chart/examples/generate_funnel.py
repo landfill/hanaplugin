@@ -56,7 +56,12 @@ def parse_rate(val: str) -> str:
     val = val.strip()
     if not val:
         return "—"
-    sign = "-" if "↓" in val else "+"
+    if "↓" in val:
+        sign = "-"
+    elif "↑" in val:
+        sign = "+"
+    else:
+        sign = ""
     num = re.sub(r"[^0-9.]", "", val)
     return f"{sign}{num}%" if num else val
 
