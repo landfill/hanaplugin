@@ -147,7 +147,7 @@ def gen_bar(config: dict, rows: list[dict]) -> str:
                 "marker": {"color": COLORS[i % len(COLORS)]}
             })
     else:
-        traces = [{"type": "bar", "x": x, "y": y, "marker": {"color": COLORS[:len(x)]}}]
+        traces = [{"type": "bar", "x": x, "y": y, "marker": {"color": COLORS[0]}}]
 
     layout = _plotly_layout(config.get("title", ""))
     if config["type"] == "stacked_bar":

@@ -19,11 +19,11 @@ import sys
 from pathlib import Path
 
 
-_SCRIPTS_DIR = Path(__file__).parent
+_EXAMPLES_DIR = Path(__file__).parent
+_SCRIPTS_DIR = _EXAMPLES_DIR.parent / "scripts"
 
 
-def _load_json(filename: str) -> dict:
-    path = _SCRIPTS_DIR / filename
+def _load_json(path: Path) -> dict:
     if not path.exists():
         print(f"오류: {path} 파일을 찾을 수 없습니다.", file=sys.stderr)
         sys.exit(1)
@@ -31,8 +31,8 @@ def _load_json(filename: str) -> dict:
         return json.load(f)
 
 
-CATEGORY_FLOWS: dict[str, list[str]] = _load_json("categories.json")
-_BRAND = _load_json("brand_colors.json")
+CATEGORY_FLOWS: dict[str, list[str]] = _load_json(_EXAMPLES_DIR / "hanatour_categories.json")
+_BRAND = _load_json(_SCRIPTS_DIR / "brand_colors.json")
 
 PLOTLY_CDN = "https://cdn.plot.ly/plotly-2.32.0.min.js"
 
@@ -212,13 +212,15 @@ const tbody = document.getElementById('stepBody');
 nodeData.forEach((d, i) => {{
   const rc = d.rate.startsWith('+') ? 'up' : (d.rate.startsWith('-') ? 'down' : '');
   const sr = i > 0 ? stepRates[i-1] : '—';
-  tbody.innerHTML += `<tr>
+  const tr = document.createElement('tr');
+  tr.innerHTML = `
     <td>${{d.label}}</td>
     <td>${{d.uv.toLocaleString()}}</td>
     <td class="${{rc}}">${{d.rate}}</td>
     <td>${{convRates[i]}}</td>
     <td>${{sr}}</td>
-  </tr>`;
+  `;
+  tbody.appendChild(tr);
 }});
 
 const trace = {{

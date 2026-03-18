@@ -21,7 +21,6 @@ import json
 import re
 import sys
 import zipfile
-from io import StringIO
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
@@ -111,11 +110,17 @@ def _xlsx_to_rows_stdlib(path: Path, sheet_name: str | None = None) -> list[list
 
                 cell_type = cell.get("t", "")
                 if cell_type == "s" and raw:
-                    # shared string
                     try:
                         cells[(r, c)] = shared[int(raw)]
                     except (IndexError, ValueError):
                         cells[(r, c)] = raw
+                elif cell_type == "inlineStr":
+                    is_el = cell.find(".//s:is", _NS)
+                    if is_el is not None:
+                        texts = is_el.findall(".//s:t", _NS)
+                        cells[(r, c)] = "".join(t.text or "" for t in texts)
+                    else:
+                        cells[(r, c)] = raw or ""
                 else:
                     cells[(r, c)] = raw or ""
 
@@ -219,7 +224,7 @@ def _infer_type(values: list[str]) -> str:
         if not v:
             empties += 1
             continue
-        if re.match(r"^-?[\d,]+\.?\d*$", v.replace(",", "")):
+        if re.match(r"^-?\d+\.?\d*$", v.replace(",", "")):
             nums += 1
         elif "%" in v:
             pcts += 1

@@ -115,13 +115,13 @@ Excel/CSV 또는 클립보드 붙여넣기로 주어진 표 형태 데이터를 
 
 ### 5. 구현 (요청 시)
 
-#### A. 스크립트 모드
+#### A. 스크립트 모드 (HTML 산출물)
 
 LLM이 설계(4단계)를 기반으로 config JSON을 작성하고, `generate_chart.py`를 실행한다.
 
 ```bash
 # config JSON 작성 후 실행
-python3 scripts/generate_chart.py --config docs/chart_config.json
+python3 scripts/generate_chart.py --config path/to/chart_config.json
 
 # 지원 차트 유형 확인
 python3 scripts/generate_chart.py --list-types
@@ -141,9 +141,13 @@ python3 scripts/generate_chart.py --list-types
 
 xlsx 데이터인 경우, 먼저 `parse_tabular.py --to-csv`로 CSV 변환 후 차트를 생성한다.
 
+#### A-2. Mermaid 산출물
+
+Mermaid를 선택한 경우, `generate_chart.py`는 사용하지 않는다. LLM이 설계(4단계)를 기반으로 Mermaid 코드 블록을 직접 작성하여 `.md` 파일로 저장한다. Mermaid가 지원하는 유형(pie, bar(xychart-beta), flowchart 등)만 해당하며, 지원하지 않는 유형(sankey, treemap, heatmap 등)은 HTML 산출물로 안내한다.
+
 #### B. 직접 생성 모드 (Python 없음)
 
-LLM이 Plotly.js CDN을 사용하여 HTML을 직접 작성한다. `scripts/generate_chart.py`의 생성 함수를 참고하여 동일 품질을 유지한다.
+LLM이 Plotly.js CDN을 사용하여 HTML을 직접 작성하거나, Mermaid 코드 블록을 직접 작성한다. `scripts/generate_chart.py`의 생성 함수를 참고하여 동일 품질을 유지한다.
 
 #### 산출물 위치
 
