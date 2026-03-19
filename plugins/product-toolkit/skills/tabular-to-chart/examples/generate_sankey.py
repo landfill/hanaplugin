@@ -5,29 +5,26 @@ CSV 트래픽 리포트에서 Sankey HTML을 생성한다.
 LLM 없이 반복 실행 가능한 결정적(deterministic) 변환기.
 
 Usage:
-  python scripts/generate_sankey.py --csv docs/uv_report.csv --category 패키지
-  python scripts/generate_sankey.py --csv docs/uv_report.csv --category 항공(해외) --output docs/항공_sankey.html
-  python scripts/generate_sankey.py --csv docs/uv_report.csv --list
+  python3 examples/generate_sankey.py --csv docs/uv_report.csv --category 패키지
+  python3 examples/generate_sankey.py --csv docs/uv_report.csv --category 항공(해외) --output docs/항공_sankey.html
+  python3 examples/generate_sankey.py --csv docs/uv_report.csv --list
 """
 
 import argparse
-import csv
 import json
-import re
 import sys
 from pathlib import Path
 
-
-_EXAMPLES_DIR = Path(__file__).parent
-_SCRIPTS_DIR = _EXAMPLES_DIR.parent / "scripts"
-
-
-def _load_json(path: Path) -> dict:
-    if not path.exists():
-        print(f"오류: {path} 파일을 찾을 수 없습니다.", file=sys.stderr)
-        sys.exit(1)
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
+from utils import (
+    EXAMPLES_DIR as _EXAMPLES_DIR,
+    SCRIPTS_DIR as _SCRIPTS_DIR,
+    extract_nodes,
+    list_categories,
+    load_csv,
+    load_json as _load_json,
+    parse_number,
+    parse_rate,
+)
 
 
 CATEGORY_FLOWS: dict[str, list[str]] = _load_json(_EXAMPLES_DIR / "hanatour_categories.json")
@@ -40,97 +37,6 @@ LINK_COLORS = _BRAND["link_colors"]
 WEB_COLOR = _BRAND["web_color"]
 PC_COLOR = _BRAND["pc_color"]
 T = _BRAND["theme"]
-
-
-def parse_number(val: str) -> int | None:
-    """'1,234' → 1234, 빈 문자열 → None"""
-    val = val.strip().replace(",", "")
-    if not val:
-        return None
-    try:
-        return int(float(val))
-    except ValueError:
-        return None
-
-
-def parse_rate(val: str) -> str:
-    """'6.2%↓' → '-6.2%', '3.6%↑' → '+3.6%'"""
-    val = val.strip()
-    if not val:
-        return "—"
-    if "↓" in val:
-        sign = "-"
-    elif "↑" in val:
-        sign = "+"
-    else:
-        sign = ""
-    num = re.sub(r"[^0-9.]", "", val)
-    return f"{sign}{num}%" if num else val
-
-
-def load_csv(path: Path) -> list[dict]:
-    with open(path, encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        return [row for row in reader]
-
-
-def list_categories(rows: list[dict]) -> list[str]:
-    seen = []
-    for row in rows:
-        cat = row.get("구분1", "").strip()
-        if cat and cat not in seen:
-            seen.append(cat)
-    return seen
-
-
-def extract_nodes(rows: list[dict], category: str, steps: list[str]) -> list[dict]:
-    """category + steps 조합으로 노드 데이터 추출"""
-    lookup: dict[str, dict] = {}
-    for row in rows:
-        cat = row.get("구분1", "").strip()
-        sub = row.get("구분2", "").strip()
-        if cat == category and sub in steps:
-            lookup[sub] = row
-
-    nodes = []
-    for step in steps:
-        if step not in lookup:
-            print(f"  [경고] '{category} / {step}' 행을 CSV에서 찾을 수 없습니다.", file=sys.stderr)
-            continue
-        r = lookup[step]
-        uv = parse_number(r.get("합계_UV", ""))
-        prev = parse_number(r.get("합계_전주UV", ""))
-        rate = parse_rate(r.get("합계_증감률", ""))
-        web_uv = parse_number(r.get("Web_UV", ""))
-        web_prev = parse_number(r.get("Web_전주UV", ""))
-        web_rate = parse_rate(r.get("Web_증감률", ""))
-        web_share = r.get("Web_전체대비", "").strip() or "—"
-        pc_uv = parse_number(r.get("PC_UV", ""))
-        pc_prev = parse_number(r.get("PC_전주UV", ""))
-        pc_rate = parse_rate(r.get("PC_증감률", ""))
-        pc_share = r.get("PC_전체대비", "").strip() or "—"
-        conv = r.get("합계_전환율", "").strip() or None
-        web_conv = r.get("Web_전환율", "").strip() or None
-        pc_conv = r.get("PC_전환율", "").strip() or None
-
-        nodes.append({
-            "label": step,
-            "uv": uv or 0,
-            "prevUv": prev or 0,
-            "rate": rate,
-            "webUv": web_uv or 0,
-            "webPrev": web_prev or 0,
-            "webRate": web_rate,
-            "webShare": web_share,
-            "pcUv": pc_uv or 0,
-            "pcPrev": pc_prev or 0,
-            "pcRate": pc_rate,
-            "pcShare": pc_share,
-            "conv": conv,
-            "webConv": web_conv,
-            "pcConv": pc_conv,
-        })
-    return nodes
 
 
 def build_links(nodes: list[dict]) -> tuple[list[int], list[int], list[int], list[str]]:
@@ -305,9 +211,9 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 예시:
-  python scripts/generate_sankey.py --csv docs/uv_report.csv --list
-  python scripts/generate_sankey.py --csv docs/uv_report.csv --category 패키지
-  python scripts/generate_sankey.py --csv docs/uv_report.csv --category 항공(해외) --output docs/항공_sankey.html
+  python3 examples/generate_sankey.py --csv docs/uv_report.csv --list
+  python3 examples/generate_sankey.py --csv docs/uv_report.csv --category 패키지
+  python3 examples/generate_sankey.py --csv docs/uv_report.csv --category 항공(해외) --output docs/항공_sankey.html
         """,
     )
     parser.add_argument("--csv", required=True, help="입력 CSV 경로")

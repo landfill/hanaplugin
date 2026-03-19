@@ -5,114 +5,38 @@ CSV 트래픽 리포트에서 퍼널(Funnel) 또는 Stacked bar HTML을 생성�
 LLM 없이 반복 실행 가능한 결정적(deterministic) 변환기.
 
 Usage:
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --list
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --category 패키지
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --category 항공(해외) --type stacked
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --category 패키지 --output docs/패키지_funnel.html
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --list
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --category 패키지
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --category 항공(해외) --type stacked
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --category 패키지 --output docs/패키지_funnel.html
 """
 
 import argparse
-import csv
 import json
-import re
 import sys
 from pathlib import Path
 
+from utils import (
+    EXAMPLES_DIR as _EXAMPLES_DIR,
+    SCRIPTS_DIR as _SCRIPTS_DIR,
+    extract_nodes,
+    list_categories,
+    load_csv,
+    load_json as _load_json,
+    parse_number,
+    parse_rate,
+)
 
-_EXAMPLES_DIR = Path(__file__).parent
-_SCRIPTS_DIR = _EXAMPLES_DIR.parent / "scripts"
-
-
-def _load_json(path: Path) -> dict:
-    if not path.exists():
-        print(f"오류: {path} 파일을 찾을 수 없습니다.", file=sys.stderr)
-        sys.exit(1)
-    with open(path, encoding="utf-8") as f:
-        return json.load(f)
 
 
 CATEGORY_FLOWS: dict[str, list[str]] = _load_json(_EXAMPLES_DIR / "hanatour_categories.json")
 _BRAND = _load_json(_SCRIPTS_DIR / "brand_colors.json")
 
 PLOTLY_CDN = "https://cdn.plot.ly/plotly-2.32.0.min.js"
-
 FUNNEL_COLORS = _BRAND["funnel_colors"]
 WEB_COLOR = _BRAND["web_color"]
 PC_COLOR = _BRAND["pc_color"]
 T = _BRAND["theme"]
-
-
-def parse_number(val: str) -> int | None:
-    val = val.strip().replace(",", "")
-    if not val:
-        return None
-    try:
-        return int(float(val))
-    except ValueError:
-        return None
-
-
-def parse_rate(val: str) -> str:
-    val = val.strip()
-    if not val:
-        return "—"
-    if "↓" in val:
-        sign = "-"
-    elif "↑" in val:
-        sign = "+"
-    else:
-        sign = ""
-    num = re.sub(r"[^0-9.]", "", val)
-    return f"{sign}{num}%" if num else val
-
-
-def load_csv(path: Path) -> list[dict]:
-    with open(path, encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        return [row for row in reader]
-
-
-def list_categories(rows: list[dict]) -> list[str]:
-    seen = []
-    for row in rows:
-        cat = row.get("구분1", "").strip()
-        if cat and cat not in seen:
-            seen.append(cat)
-    return seen
-
-
-def extract_nodes(rows: list[dict], category: str, steps: list[str]) -> list[dict]:
-    lookup: dict[str, dict] = {}
-    for row in rows:
-        cat = row.get("구분1", "").strip()
-        sub = row.get("구분2", "").strip()
-        if cat == category and sub in steps:
-            lookup[sub] = row
-
-    nodes = []
-    for step in steps:
-        if step not in lookup:
-            print(f"  [경고] '{category} / {step}' 행을 CSV에서 찾을 수 없습니다.", file=sys.stderr)
-            continue
-        r = lookup[step]
-        nodes.append({
-            "label": step,
-            "uv": parse_number(r.get("합계_UV", "")) or 0,
-            "prevUv": parse_number(r.get("합계_전주UV", "")) or 0,
-            "rate": parse_rate(r.get("합계_증감률", "")),
-            "webUv": parse_number(r.get("Web_UV", "")) or 0,
-            "webPrev": parse_number(r.get("Web_전주UV", "")) or 0,
-            "webRate": parse_rate(r.get("Web_증감률", "")),
-            "webShare": r.get("Web_전체대비", "").strip() or "—",
-            "pcUv": parse_number(r.get("PC_UV", "")) or 0,
-            "pcPrev": parse_number(r.get("PC_전주UV", "")) or 0,
-            "pcRate": parse_rate(r.get("PC_증감률", "")),
-            "pcShare": r.get("PC_전체대비", "").strip() or "—",
-            "conv": r.get("합계_전환율", "").strip() or None,
-            "webConv": r.get("Web_전환율", "").strip() or None,
-            "pcConv": r.get("PC_전환율", "").strip() or None,
-        })
-    return nodes
 
 
 def render_funnel_html(category: str, nodes: list[dict]) -> str:
@@ -400,10 +324,10 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 예시:
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --list
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --category 패키지
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --category 항공(해외) --type stacked
-  python3 scripts/generate_funnel.py --csv docs/uv_report.csv --category 패키지 --output docs/패키지_funnel.html
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --list
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --category 패키지
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --category 항공(해외) --type stacked
+  python3 examples/generate_funnel.py --csv docs/uv_report.csv --category 패키지 --output docs/패키지_funnel.html
         """,
     )
     parser.add_argument("--csv", required=True, help="입력 CSV 경로")

@@ -56,7 +56,7 @@ def _xlsx_list_sheets_stdlib(path: Path) -> list[str]:
 
 def _xlsx_to_rows_stdlib(path: Path, sheet_name: str | None = None) -> list[list[str]]:
     """xlsx를 2D 문자열 리스트로 파싱 (stdlib only).
-    병합셀·수식 결과값·인라인 문자열은 처리하지 않는다."""
+    병합셀·수식 결과값은 처리하지 않는다."""
     with zipfile.ZipFile(path) as zf:
         # shared strings
         shared: list[str] = []
