@@ -78,16 +78,22 @@ def _xlsx_to_rows_stdlib(path: Path, sheet_name: str | None = None) -> list[list
         else:
             idx = 0
 
-        sheet_path = f"xl/worksheets/sheet{idx + 1}.xml"
-        if sheet_path not in zf.namelist():
-            # rId 기반 매핑 시도
+        # 시트 순서 재정렬 시 sheet{N}.xml 추측이 틀릴 수 있으므로
+        # 항상 workbook.xml.rels의 rId 매핑으로 실제 경로를 확인한다.
+        ns_r = {"r": "http://schemas.openxmlformats.org/package/2006/relationships"}
+        r_id = sheets[idx].get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id", "")
+        sheet_path = None
+        if "xl/_rels/workbook.xml.rels" in zf.namelist():
             rels_xml = ET.fromstring(zf.read("xl/_rels/workbook.xml.rels"))
-            ns_r = {"r": "http://schemas.openxmlformats.org/package/2006/relationships"}
-            r_id = sheets[idx].get("{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id", "")
             for rel in rels_xml.findall(".//r:Relationship", ns_r):
                 if rel.get("Id") == r_id:
-                    sheet_path = "xl/" + rel.get("Target", "")
+                    target = rel.get("Target", "")
+                    sheet_path = target if target.startswith("xl/") else f"xl/{target}"
                     break
+
+        # rId 매핑 실패 시 관례적 경로로 폴백
+        if not sheet_path:
+            sheet_path = f"xl/worksheets/sheet{idx + 1}.xml"
 
         sheet_xml = ET.fromstring(zf.read(sheet_path))
 

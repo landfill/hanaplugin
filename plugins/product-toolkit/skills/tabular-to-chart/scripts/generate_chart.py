@@ -76,7 +76,8 @@ def load_data(config: dict) -> list[dict]:
 
 
 def extract_col(rows: list[dict], col: str) -> list:
-    return [r.get(col, "").strip() for r in rows]
+    # data_rows에 숫자 리터럴이 있을 경우 str 변환 후 strip
+    return [str(r.get(col, "")).strip() for r in rows]
 
 
 def to_numeric(values: list[str]) -> list[float]:
