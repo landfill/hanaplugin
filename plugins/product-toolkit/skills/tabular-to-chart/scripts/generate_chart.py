@@ -64,6 +64,17 @@ def load_csv_data(path: str) -> list[dict]:
         return list(csv.DictReader(f))
 
 
+def load_data(config: dict) -> list[dict]:
+    """data_csv 파일 또는 config 내 inline rows 로드."""
+    if "data_rows" in config:
+        return config["data_rows"]
+    data_csv = config.get("data_csv", "")
+    if not data_csv or not Path(data_csv).exists():
+        print(f"오류: data_csv 파일을 찾을 수 없습니다 — '{data_csv}'", file=sys.stderr)
+        sys.exit(1)
+    return load_csv_data(data_csv)
+
+
 def extract_col(rows: list[dict], col: str) -> list:
     return [r.get(col, "").strip() for r in rows]
 
@@ -152,6 +163,8 @@ def gen_bar(config: dict, rows: list[dict]) -> str:
     layout = _plotly_layout(config.get("title", ""))
     if config["type"] == "stacked_bar":
         layout["barmode"] = "stack"
+    elif color_col:
+        layout["barmode"] = "group"
 
     traces_json = json.dumps(traces, ensure_ascii=False)
     layout_json = json.dumps(layout, ensure_ascii=False)
@@ -214,7 +227,8 @@ def gen_scatter(config: dict, rows: list[dict]) -> str:
     m = config["mapping"]
     x = to_numeric(extract_col(rows, m["x"]))
     y = to_numeric(extract_col(rows, m["y"]))
-    text = extract_col(rows, m.get("text", m["x"]))
+    text_col = m.get("text", "")
+    text = extract_col(rows, text_col) if text_col else [str(v) for v in x]
 
     trace = {
         "type": "scatter", "mode": "markers",
@@ -336,7 +350,6 @@ def gen_funnel(config: dict, rows: list[dict]) -> str:
         "orientation": "h"
     }
     layout = _plotly_layout(config.get("title", ""), height=400)
-    layout["funnelmode"] = "stack"
 
     body = f"""<div id="chart"></div>
 <script>
@@ -409,11 +422,12 @@ Config 예시 (sankey):
         sys.exit(1)
 
     data_csv = config.get("data_csv", "")
-    if not data_csv or not Path(data_csv).exists():
-        print(f"오류: data_csv 파일을 찾을 수 없습니다 — '{data_csv}'", file=sys.stderr)
-        sys.exit(1)
+    if "data_rows" not in config:
+        if not data_csv or not Path(data_csv).exists():
+            print(f"오류: data_csv 파일을 찾을 수 없습니다 — '{data_csv}'", file=sys.stderr)
+            sys.exit(1)
 
-    rows = load_csv_data(data_csv)
+    rows = load_data(config)
     if not rows:
         print("오류: CSV 데이터가 비어 있습니다.", file=sys.stderr)
         sys.exit(1)
@@ -423,7 +437,10 @@ Config 예시 (sankey):
     if args.output:
         out_path = Path(args.output)
     else:
-        out_path = Path(data_csv).parent / f"{Path(data_csv).stem}_{chart_type}.html"
+        if data_csv:
+            out_path = Path(data_csv).parent / f"{Path(data_csv).stem}_{chart_type}.html"
+        else:
+            out_path = Path(f"{chart_type}_chart.html")
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     out_path.write_text(html, encoding="utf-8")
