@@ -82,9 +82,13 @@ def extract_col(rows: list[dict], col: str) -> list:
 def to_numeric(values: list[str]) -> list[float]:
     result = []
     for v in values:
-        v = v.replace(",", "").replace("%", "").replace("↑", "").replace("↓", "")
+        v = v.replace(",", "").replace("%", "")
+        # ↓ 는 음수, ↑ 는 양수로 처리
+        negative = "↓" in v
+        v = v.replace("↑", "").replace("↓", "")
         try:
-            result.append(float(v))
+            num = float(v)
+            result.append(-num if negative and num > 0 else num)
         except ValueError:
             result.append(0.0)
     return result
@@ -405,6 +409,7 @@ Config 예시 (sankey):
         parser.error("--config 또는 --list-types 중 하나를 지정하세요.")
 
     # config 로드
+    config_dir = Path.cwd()
     if args.config == "-":
         config = json.load(sys.stdin)
     else:
@@ -412,6 +417,7 @@ Config 예시 (sankey):
         if not config_path.exists():
             print(f"오류: config 파일을 찾을 수 없습니다 — {config_path}", file=sys.stderr)
             sys.exit(1)
+        config_dir = config_path.resolve().parent
         with open(config_path, encoding="utf-8") as f:
             config = json.load(f)
 
@@ -423,6 +429,10 @@ Config 예시 (sankey):
 
     data_csv = config.get("data_csv", "")
     if "data_rows" not in config:
+        # 상대경로는 config 파일 위치 기준으로 해석
+        if data_csv and not Path(data_csv).is_absolute():
+            data_csv = str(config_dir / data_csv)
+            config["data_csv"] = data_csv
         if not data_csv or not Path(data_csv).exists():
             print(f"오류: data_csv 파일을 찾을 수 없습니다 — '{data_csv}'", file=sys.stderr)
             sys.exit(1)

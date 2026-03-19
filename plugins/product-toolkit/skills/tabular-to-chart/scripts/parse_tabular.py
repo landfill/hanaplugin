@@ -186,10 +186,19 @@ def load_tabular(path: Path, sheet_name: str | None = None) -> list[list[str]]:
             sys.exit(1)
 
         # 1순위: stdlib
+        stdlib_result = None
         try:
-            return _xlsx_to_rows_stdlib(path, sheet_name)
+            stdlib_result = _xlsx_to_rows_stdlib(path, sheet_name)
         except Exception as e:
             print(f"  [정보] stdlib 파싱 실패 ({e}), openpyxl 시도...", file=sys.stderr)
+
+        # stdlib 결과가 있어도 헤더 행이 전부 빈 문자열이면 inlineStr 등 미지원 형식일 수 있음
+        # → openpyxl 로 재시도한다
+        if stdlib_result is not None:
+            header_empty = stdlib_result and all(v == "" for v in stdlib_result[0])
+            if not header_empty:
+                return stdlib_result
+            print("  [정보] stdlib 파서가 빈 헤더를 반환했습니다. openpyxl 재시도...", file=sys.stderr)
 
         # 2순위: openpyxl
         try:

@@ -39,14 +39,8 @@ def _in_venv() -> bool:
     return sys.prefix != sys.base_prefix
 
 
-def ensure_openpyxl():
-    """openpyxl 이 없으면 venv 생성 후 설치하고 venv Python으로 재실행한다."""
-    try:
-        import openpyxl  # noqa: F401
-        return
-    except ImportError:
-        pass
-
+def _install_openpyxl():
+    """openpyxl 을 venv에 설치하고 venv Python으로 재실행한다."""
     if _in_venv():
         subprocess.run(
             [sys.executable, "-m", "pip", "install", "-q", "openpyxl"],
@@ -64,6 +58,21 @@ def ensure_openpyxl():
         check=True,
     )
     os.execv(str(venv_py), [str(venv_py)] + sys.argv)
+
+
+def ensure_openpyxl_if_needed():
+    """stdlib xlsx 파서가 실패할 때만 openpyxl 설치를 시도한다.
+
+    parse_tabular.py 는 stdlib 파서를 먼저 시도하고 실패 시 openpyxl 을 임포트한다.
+    run_charts.py 는 파일 확장자만 보고 미리 설치하지 않는다 — stdlib 파서가
+    성공하면 설치가 전혀 불필요하기 때문이다.
+    openpyxl 이 필요해지는 시점(ImportError)은 parse_tabular.py 내부에서 발생하므로,
+    여기서는 이미 설치된 경우만 조용히 통과하고 미설치 상태를 그대로 둔다.
+    실제 설치 트리거는 parse_tabular._xlsx_to_rows_openpyxl() 의 ImportError 경로에서
+    사용자에게 안내 메시지를 출력한다.
+    """
+    # 아무것도 하지 않는다 — parse_tabular.py 가 자체적으로 처리한다.
+    pass
 
 
 def main():
@@ -90,14 +99,8 @@ def main():
              {"__name__": "__main__", "__file__": str(SCRIPT_DIR / "generate_chart.py")})
 
     elif subcommand == "parse":
-        # xlsx 파싱 시 openpyxl 이 필요할 수 있으므로 사전 확보 시도
-        # (stdlib 파서가 먼저 시도되므로 단순 xlsx 는 설치 없이도 동작)
-        has_xlsx = any(
-            a.endswith((".xlsx", ".xls")) for a in rest
-        )
-        if has_xlsx:
-            ensure_openpyxl()
-
+        # openpyxl 은 parse_tabular.py 내부에서 필요 시 자체 처리한다.
+        # run_charts.py 는 미리 설치하지 않는다 — stdlib 파서가 성공하면 불필요.
         sys.argv = [str(SCRIPT_DIR / "parse_tabular.py")] + rest
         exec(compile((SCRIPT_DIR / "parse_tabular.py").read_text(encoding="utf-8"),
                      str(SCRIPT_DIR / "parse_tabular.py"), "exec"),
