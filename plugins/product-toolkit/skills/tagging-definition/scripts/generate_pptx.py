@@ -11,6 +11,8 @@ import copy
 import sys
 from pathlib import Path
 
+from lxml import etree  # python-pptx 필수 의존성이므로 항상 사용 가능
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_TEMPLATE = SCRIPT_DIR.parent / "template" / "태깅정의서_템플릿.pptx"
 
@@ -321,7 +323,9 @@ def _fill_table_from_template(tbl, headers: list, rows: list, copy_style_from=No
         needed = 1 + len(rows)  # 헤더 + 데이터
         if needed > nrows_total:
             try:
-                from lxml import etree
+                # NOTE: _tbl은 python-pptx 비공개 속성(lxml Element)으로,
+                # 공식 API에 행 추가 메서드가 없어 직접 XML을 조작한다.
+                # python-pptx 버전 업데이트 시 동작 확인 필요.
                 tbl_el = tbl._tbl
                 ns = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
                 tr_list = tbl_el.findall(f'{ns}tr')
@@ -397,6 +401,9 @@ def main():
         detail_template_idx = 3
         if len(events) == 0:
             # 이벤트가 없으면 태깅 상세 슬라이드(인덱스 3) 제거
+            # NOTE: _sldIdLst는 python-pptx 비공개 속성으로, 공식 API에
+            # 슬라이드 삭제 메서드가 없어 직접 조작한다.
+            # python-pptx 버전 업데이트 시 동작 확인 필요.
             if len(prs.slides) > detail_template_idx:
                 rId = prs.slides._sldIdLst[detail_template_idx].get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
                 prs.part.drop_rel(rId)

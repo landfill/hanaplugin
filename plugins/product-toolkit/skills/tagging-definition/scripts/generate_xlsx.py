@@ -49,11 +49,16 @@ def main():
         sys.exit(2)
 
     wb = openpyxl.Workbook()
-    bold = Font(bold=True)
-    header_font = Font(bold=True, size=10)
-    header_fill = PatternFill(start_color=HEADER_FILL_COLOR, end_color=HEADER_FILL_COLOR, fill_type="solid")
-    center_align = Alignment(horizontal="center", vertical="center")
-    thin_border = Border(
+
+    # --- 공통 스타일 상수 ---
+    TITLE_FONT = Font(bold=True, size=16)       # 표지 제목
+    EVENT_TITLE_FONT = Font(bold=True, size=12)  # 이벤트 시트 제목
+    SUBTITLE_FONT = Font(italic=True, color="666666")  # Event Name 영문
+    BOLD_FONT = Font(bold=True)                  # 일반 볼드 (개요 제목, 이력 라벨)
+    HEADER_FONT = Font(bold=True, size=10)       # 태깅 표 헤더
+    HEADER_FILL = PatternFill(start_color=HEADER_FILL_COLOR, end_color=HEADER_FILL_COLOR, fill_type="solid")
+    CENTER_ALIGN = Alignment(horizontal="center", vertical="center")
+    THIN_BORDER = Border(
         left=Side(style="thin"),
         right=Side(style="thin"),
         top=Side(style="thin"),
@@ -64,7 +69,7 @@ def main():
     ws0 = wb.active
     ws0.title = "표지"
     ws0["A1"] = f"{meta['서비스명']} 태깅 정의서"
-    ws0["A1"].font = Font(bold=True, size=16)
+    ws0["A1"].font = TITLE_FONT
     ws0["A2"] = meta["작성일"]
     ws0["A3"] = meta["팀"]
     ws0["A4"] = meta["작성자"]
@@ -76,17 +81,17 @@ def main():
     history_values = ["0.0.1", meta["작성일"], f"{meta['서비스명']} 태깅 정의 초안", meta["작성자"]]
     for i, (label, val) in enumerate(zip(history_labels, history_values), start=1):
         label_cell = ws1.cell(row=i, column=1, value=label)
-        label_cell.font = bold
-        label_cell.border = thin_border
-        label_cell.fill = header_fill
+        label_cell.font = BOLD_FONT
+        label_cell.border = THIN_BORDER
+        label_cell.fill = HEADER_FILL
         val_cell = ws1.cell(row=i, column=2, value=val)
-        val_cell.border = thin_border
+        val_cell.border = THIN_BORDER
     _auto_adjust_column_widths(ws1)
 
     # 개요
     ws2 = wb.create_sheet("개요")
     ws2["A1"] = "태깅 대상 화면"
-    ws2["A1"].font = bold
+    ws2["A1"].font = BOLD_FONT
     for i, s in enumerate(screens, start=2):
         ws2[f"A{i}"] = s
     _auto_adjust_column_widths(ws2)
@@ -98,24 +103,24 @@ def main():
         sheet_name = title[:31]  # 엑셀 시트명 길이 제한
         ws = wb.create_sheet(sheet_name)
         ws["A1"] = f"{title}  ({ev.get('호출 시점', '')})"
-        ws["A1"].font = Font(bold=True, size=12)
+        ws["A1"].font = EVENT_TITLE_FONT
         if event_name_en:
             ws["A2"] = f"Event Name: {event_name_en}"
-            ws["A2"].font = Font(italic=True, color="666666")
+            ws["A2"].font = SUBTITLE_FONT
         headers = ["Event property", "property 구분", "value", "description"]
         for c, h in enumerate(headers, start=1):
             cell = ws.cell(row=3, column=c, value=h)
-            cell.font = header_font
-            cell.fill = header_fill
-            cell.alignment = center_align
-            cell.border = thin_border
+            cell.font = HEADER_FONT
+            cell.fill = HEADER_FILL
+            cell.alignment = CENTER_ALIGN
+            cell.border = THIN_BORDER
         for r, p in enumerate(ev["properties"], start=4):
             vals = [p["Event property"], p["property 구분"], p["value"], p["description"]]
             for c, v in enumerate(vals, start=1):
                 cell = ws.cell(row=r, column=c, value=v)
-                cell.border = thin_border
+                cell.border = THIN_BORDER
                 if c == 2:  # property 구분은 가운데 정렬
-                    cell.alignment = center_align
+                    cell.alignment = CENTER_ALIGN
         _auto_adjust_column_widths(ws)
 
     output_xlsx.parent.mkdir(parents=True, exist_ok=True)
