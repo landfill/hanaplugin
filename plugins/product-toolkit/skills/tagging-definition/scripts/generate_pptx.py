@@ -317,6 +317,23 @@ def _fill_table_from_template(tbl, headers: list, rows: list, copy_style_from=No
             cell.text = headers[c] if c < len(headers) else ""
             apply_cell_format(cell, font_ref, align_ref)
 
+        # 템플릿 행 수가 부족하면 마지막 행을 XML 복제해 행 추가
+        needed = 1 + len(rows)  # 헤더 + 데이터
+        if needed > nrows_total:
+            try:
+                from lxml import etree
+                tbl_el = tbl._tbl
+                ns = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
+                tr_list = tbl_el.findall(f'{ns}tr')
+                last_tr = tr_list[-1] if tr_list else None
+                if last_tr is not None:
+                    for _ in range(needed - nrows_total):
+                        new_tr = copy.deepcopy(last_tr)
+                        tbl_el.append(new_tr)
+                    nrows_total = needed
+            except Exception as e:
+                print(f"경고: 테이블 행 추가 실패 (프로퍼티 {len(rows)}개 중 {nrows_total - 1}개만 표시): {e}", file=sys.stderr)
+
         # 데이터 행
         for r, row in enumerate(rows):
             if r + 1 >= nrows_total:
@@ -377,10 +394,17 @@ def main():
 
     if template_pptx.exists():
         prs = Presentation(str(template_pptx))
-        # 태깅 상세 슬라이드(인덱스 3)를 이벤트 수만큼 복제
         detail_template_idx = 3
-        for _ in range(len(events) - 1):
-            _duplicate_slide(prs, detail_template_idx)
+        if len(events) == 0:
+            # 이벤트가 없으면 태깅 상세 슬라이드(인덱스 3) 제거
+            if len(prs.slides) > detail_template_idx:
+                rId = prs.slides._sldIdLst[detail_template_idx].get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id')
+                prs.part.drop_rel(rId)
+                prs.slides._sldIdLst.remove(prs.slides._sldIdLst[detail_template_idx])
+        else:
+            # 태깅 상세 슬라이드를 이벤트 수만큼 복제
+            for _ in range(len(events) - 1):
+                _duplicate_slide(prs, detail_template_idx)
     else:
         prs = Presentation()
         prs.slide_width = Inches(10)

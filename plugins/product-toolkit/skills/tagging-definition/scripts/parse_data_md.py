@@ -21,7 +21,7 @@ def parse_md(path: str) -> dict:
     meta_match = re.search(r"## 메타정보\s*\n(.*?)(?=\n## |\Z)", text, re.DOTALL)
     if meta_match:
         for line in meta_match.group(1).strip().split("\n"):
-            m = re.match(r"-\s*(\S+):\s*(.+)", line.strip())
+            m = re.match(r"-\s*(.+?):\s*(.+)", line.strip())
             if m:
                 key, val = m.group(1).strip(), m.group(2).strip()
                 if key in data["meta"]:
