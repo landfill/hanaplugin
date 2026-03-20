@@ -1,0 +1,32 @@
+{
+  "_brand": {
+    "purple": "#5E2BB8",
+    "mint": "#08D1D9",
+    "black": "#000000",
+    "white": "#FFFFFF",
+    "source": "https://hanatourcompany.com/kr/company/ci"
+  },
+  "node_colors": ["#5E2BB8", "#4A4DBB", "#3670BE", "#1FA0CB", "#08D1D9"],
+  "link_colors": [
+    "rgba(94,43,184,0.35)",
+    "rgba(74,77,187,0.35)",
+    "rgba(54,112,190,0.35)",
+    "rgba(31,160,203,0.35)"
+  ],
+  "funnel_colors": ["#5E2BB8", "#4A4DBB", "#3670BE", "#1FA0CB", "#08D1D9"],
+  "web_color": "#5E2BB8",
+  "pc_color": "#08D1D9",
+  "theme": {
+    "bg": "#0D0A17",
+    "surface": "#1A1330",
+    "border": "#2D2555",
+    "text": "#EDE8F5",
+    "text_muted": "#9B8FBB",
+    "card_title": "#A88AE0",
+    "up": "#08D1D9",
+    "down": "#F87171",
+    "meta": "#4A3D6B",
+    "grid": "#2D2555",
+    "connector": "#2D2555"
+  }
+}
