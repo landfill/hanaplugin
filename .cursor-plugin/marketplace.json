@@ -6,7 +6,7 @@
   },
   "metadata": {
     "description": "프로덕트 기획자를 위한 스킬셋. 시장조사/기획, 태깅 정의서 자동 생성, 소크라테스식 기획 컨설팅, 테이블 데이터 시각화.",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "pluginRoot": "plugins"
   },
   "plugins": [

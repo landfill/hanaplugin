@@ -100,7 +100,7 @@ def main():
     for idx, ev in enumerate(events):
         title = ev.get("Event Name (한글)") or ev.get("Event Name (영문)") or f"이벤트{idx+1}"
         event_name_en = ev.get("Event Name (영문)") or ""
-        sheet_name = title[:31]  # 엑셀 시트명 길이 제한
+        sheet_name = "".join(c for c in title if c not in "[]*/\\?:")[:31]  # 금지 문자 제거 + 길이 제한
         ws = wb.create_sheet(sheet_name)
         ws["A1"] = f"{title}  ({ev.get('호출 시점', '')})"
         ws["A1"].font = EVENT_TITLE_FONT
