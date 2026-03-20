@@ -11,8 +11,14 @@ import copy
 import sys
 from pathlib import Path
 
+from lxml import etree  # python-pptx 필수 의존성이므로 항상 사용 가능
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_TEMPLATE = SCRIPT_DIR.parent / "template" / "태깅정의서_템플릿.pptx"
+
+# python-pptx 내부 XML 조작 시 사용하는 네임스페이스
+_NS_REL = '{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id'
+_NS_DML = '{http://schemas.openxmlformats.org/drawingml/2006/main}'
 
 
 def _find_project_root(start_path: Path) -> Path:
@@ -317,6 +323,24 @@ def _fill_table_from_template(tbl, headers: list, rows: list, copy_style_from=No
             cell.text = headers[c] if c < len(headers) else ""
             apply_cell_format(cell, font_ref, align_ref)
 
+        # 템플릿 행 수가 부족하면 마지막 행을 XML 복제해 행 추가
+        needed = 1 + len(rows)  # 헤더 + 데이터
+        if needed > nrows_total:
+            try:
+                # NOTE: _tbl은 python-pptx 비공개 속성(lxml Element)으로,
+                # 공식 API에 행 추가 메서드가 없어 직접 XML을 조작한다.
+                # python-pptx 버전 업데이트 시 동작 확인 필요.
+                tbl_el = tbl._tbl
+                tr_list = tbl_el.findall(f'{_NS_DML}tr')
+                last_tr = tr_list[-1] if tr_list else None
+                if last_tr is not None:
+                    for _ in range(needed - nrows_total):
+                        new_tr = copy.deepcopy(last_tr)
+                        tbl_el.append(new_tr)
+                    nrows_total = needed
+            except Exception as e:
+                print(f"경고: 테이블 행 추가 실패 (프로퍼티 {len(rows)}개 중 {nrows_total - 1}개만 표시): {e}", file=sys.stderr)
+
         # 데이터 행
         for r, row in enumerate(rows):
             if r + 1 >= nrows_total:
@@ -377,10 +401,24 @@ def main():
 
     if template_pptx.exists():
         prs = Presentation(str(template_pptx))
-        # 태깅 상세 슬라이드(인덱스 3)를 이벤트 수만큼 복제
         detail_template_idx = 3
-        for _ in range(len(events) - 1):
-            _duplicate_slide(prs, detail_template_idx)
+        if len(events) == 0:
+            # 이벤트가 없으면 태깅 상세 슬라이드(인덱스 3) 제거
+            # NOTE: _sldIdLst는 python-pptx 비공개 속성으로, 공식 API에
+            # 슬라이드 삭제 메서드가 없어 직접 조작한다.
+            # python-pptx 버전 업데이트 시 동작 확인 필요.
+            if len(prs.slides) > detail_template_idx:
+                sldId = prs.slides._sldIdLst[detail_template_idx]
+                rId = sldId.get(_NS_REL)
+                if rId is not None:
+                    prs.part.drop_rel(rId)
+                else:
+                    print("경고: 태깅 상세 슬라이드의 relationship ID를 찾을 수 없습니다.", file=sys.stderr)
+                prs.slides._sldIdLst.remove(sldId)
+        else:
+            # 태깅 상세 슬라이드를 이벤트 수만큼 복제
+            for _ in range(len(events) - 1):
+                _duplicate_slide(prs, detail_template_idx)
     else:
         prs = Presentation()
         prs.slide_width = Inches(10)
@@ -534,7 +572,7 @@ def main():
                         # 마지막 행 1개 제거 (표 사이즈 축소)
                         try:
                             tbl_el = tbl._tbl
-                            tr_list = tbl_el.findall('{http://schemas.openxmlformats.org/drawingml/2006/main}tr')
+                            tr_list = tbl_el.findall(f'{_NS_DML}tr')
                             if len(tr_list) > 2:
                                 tbl_el.remove(tr_list[-1])
                         except Exception:

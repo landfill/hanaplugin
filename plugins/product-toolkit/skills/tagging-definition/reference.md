@@ -160,7 +160,7 @@ Amplitude Data Planning, GA4·이벤트 택소노미 참고.
 
 ## 이벤트·속성 정의 항목 (샘플 기준)
 
-**이벤트 수준**: 이벤트 호출 시점/트리거, Event Category, Event Name(영문/한글), 신규/기존 구분.
+**이벤트 수준**: 이벤트 호출 시점/트리거, Event Name(영문/한글), 신규/기존 구분.
 
 **속성 수준**: Event property(속성명 영문), 속성명 한글/설명, property 구분(기존/신규/변경), value(샘플 데이터), description(샘플 데이터 설명). **value는 사용자에게 샘플 확인 후 반영, 없으면 자동 생성.**
 

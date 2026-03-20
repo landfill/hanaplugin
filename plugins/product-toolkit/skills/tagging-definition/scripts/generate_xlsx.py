@@ -8,6 +8,23 @@ from pathlib import Path
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 
+# 헤더 배경색 (PPT와 동일한 연회색)
+HEADER_FILL_COLOR = "E7E6E6"
+
+
+def _auto_adjust_column_widths(ws):
+    """시트의 각 열 너비를 내용에 맞게 자동 조정한다."""
+    for col_cells in ws.columns:
+        max_length = 0
+        col_letter = col_cells[0].column_letter
+        for cell in col_cells:
+            if cell.value is not None:
+                # 한글은 약 2배 너비 차지
+                val = str(cell.value)
+                length = sum(2 if ord(c) > 127 else 1 for c in val)
+                max_length = max(max_length, length)
+        ws.column_dimensions[col_letter].width = min(max_length + 4, 50)
+
 
 def main():
     if len(sys.argv) < 3:
@@ -26,57 +43,85 @@ def main():
 
     try:
         import openpyxl
-        from openpyxl.styles import Font, Alignment
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
     except ImportError:
         print("openpyxl이 필요합니다: pip install openpyxl", file=sys.stderr)
         sys.exit(2)
 
     wb = openpyxl.Workbook()
-    bold = Font(bold=True)
+
+    # --- 공통 스타일 상수 ---
+    TITLE_FONT = Font(bold=True, size=16)       # 표지 제목
+    EVENT_TITLE_FONT = Font(bold=True, size=12)  # 이벤트 시트 제목
+    SUBTITLE_FONT = Font(italic=True, color="666666")  # Event Name 영문
+    BOLD_FONT = Font(bold=True)                  # 일반 볼드 (개요 제목, 이력 라벨)
+    HEADER_FONT = Font(bold=True, size=10)       # 태깅 표 헤더
+    HEADER_FILL = PatternFill(start_color=HEADER_FILL_COLOR, end_color=HEADER_FILL_COLOR, fill_type="solid")
+    CENTER_ALIGN = Alignment(horizontal="center", vertical="center")
+    THIN_BORDER = Border(
+        left=Side(style="thin"),
+        right=Side(style="thin"),
+        top=Side(style="thin"),
+        bottom=Side(style="thin"),
+    )
 
     # 표지
     ws0 = wb.active
     ws0.title = "표지"
     ws0["A1"] = f"{meta['서비스명']} 태깅 정의서"
-    ws0["A1"].font = bold
+    ws0["A1"].font = TITLE_FONT
     ws0["A2"] = meta["작성일"]
     ws0["A3"] = meta["팀"]
     ws0["A4"] = meta["작성자"]
+    _auto_adjust_column_widths(ws0)
 
     # 이력
     ws1 = wb.create_sheet("이력")
-    ws1["A1"] = "버전"
-    ws1["B1"] = "0.0.1"
-    ws1["A2"] = "변경일"
-    ws1["B2"] = meta["작성일"]
-    ws1["A3"] = "변경내용"
-    ws1["B3"] = f"{meta['서비스명']} 태깅 정의 초안"
-    ws1["A4"] = "작성자"
-    ws1["B4"] = meta["작성자"]
+    history_labels = ["버전", "변경일", "변경내용", "작성자"]
+    history_values = ["0.0.1", meta["작성일"], f"{meta['서비스명']} 태깅 정의 초안", meta["작성자"]]
+    for i, (label, val) in enumerate(zip(history_labels, history_values), start=1):
+        label_cell = ws1.cell(row=i, column=1, value=label)
+        label_cell.font = BOLD_FONT
+        label_cell.border = THIN_BORDER
+        label_cell.fill = HEADER_FILL
+        val_cell = ws1.cell(row=i, column=2, value=val)
+        val_cell.border = THIN_BORDER
+    _auto_adjust_column_widths(ws1)
 
     # 개요
     ws2 = wb.create_sheet("개요")
     ws2["A1"] = "태깅 대상 화면"
-    ws2["A1"].font = bold
+    ws2["A1"].font = BOLD_FONT
     for i, s in enumerate(screens, start=2):
         ws2[f"A{i}"] = s
+    _auto_adjust_column_widths(ws2)
 
     # 이벤트별 태깅 상세
     for idx, ev in enumerate(events):
         title = ev.get("Event Name (한글)") or ev.get("Event Name (영문)") or f"이벤트{idx+1}"
-        sheet_name = title[:31]  # 엑셀 시트명 길이 제한
+        event_name_en = ev.get("Event Name (영문)") or ""
+        sheet_name = "".join(c for c in title if c not in "[]*/\\?:")[:31]  # 금지 문자 제거 + 길이 제한
         ws = wb.create_sheet(sheet_name)
         ws["A1"] = f"{title}  ({ev.get('호출 시점', '')})"
-        ws["A1"].font = bold
+        ws["A1"].font = EVENT_TITLE_FONT
+        if event_name_en:
+            ws["A2"] = f"Event Name: {event_name_en}"
+            ws["A2"].font = SUBTITLE_FONT
         headers = ["Event property", "property 구분", "value", "description"]
         for c, h in enumerate(headers, start=1):
             cell = ws.cell(row=3, column=c, value=h)
-            cell.font = bold
+            cell.font = HEADER_FONT
+            cell.fill = HEADER_FILL
+            cell.alignment = CENTER_ALIGN
+            cell.border = THIN_BORDER
         for r, p in enumerate(ev["properties"], start=4):
-            ws.cell(row=r, column=1, value=p["Event property"])
-            ws.cell(row=r, column=2, value=p["property 구분"])
-            ws.cell(row=r, column=3, value=p["value"])
-            ws.cell(row=r, column=4, value=p["description"])
+            vals = [p["Event property"], p["property 구분"], p["value"], p["description"]]
+            for c, v in enumerate(vals, start=1):
+                cell = ws.cell(row=r, column=c, value=v)
+                cell.border = THIN_BORDER
+                if c == 2:  # property 구분은 가운데 정렬
+                    cell.alignment = CENTER_ALIGN
+        _auto_adjust_column_widths(ws)
 
     output_xlsx.parent.mkdir(parents=True, exist_ok=True)
     wb.save(str(output_xlsx))
