@@ -78,12 +78,32 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 
 ---
 
+## 알려진 이슈: 팀 마켓플레이스 Auto Refresh 미작동
+
+> **상태**: Cursor 팀 확인·추적 중 (2026-03-16 공식 응답)
+
+`Enable Auto Refresh`를 켜도 레포에 푸시한 스킬 추가/수정이 Cursor에 자동 반영되지 않는 [버그가 보고](https://forum.cursor.com/t/team-marketplace-auto-refresh-does-not-pick-up-plugin-changes-manual-refresh-cache-clear-reinstall-required/154675)되어 있습니다 (2026-03-13).
+
+**업데이트를 반영하려면 아래 3단계를 수동으로 수행해야 합니다:**
+
+```bash
+# 1. 플러그인 캐시 삭제
+rm -rf ~/.cursor/plugins/cache/<marketplace>/<plugin>/<ref>
+
+# 2. Marketplace Settings → Plugin Repository → Refresh 클릭
+
+# 3. 플러그인 언인스톨 후 재인스톨
+```
+
+---
+
 ## 참고 링크
 
 - [Cursor Plugins 문서](https://cursor.com/docs/plugins)
 - [팀 마켓플레이스 안내](https://cursor.com/docs/plugins#team-marketplaces)
 - [플러그인 빌드 가이드](https://cursor.com/docs/plugins/building.md)
 - [팀 마켓플레이스 Refresh 트러블슈팅 (포럼)](https://forum.cursor.com/t/team-marketplace-refresh-failing-since-mar-7-worked-fine-until-mar-6-public-repo-no-github-app-connected/154643) — 2.6 이후 `source` 경로 파싱 변경, 올바른 디렉터리 구조 등 해결 사례
+- [Auto Refresh 미작동 버그 (포럼)](https://forum.cursor.com/t/team-marketplace-auto-refresh-does-not-pick-up-plugin-changes-manual-refresh-cache-clear-reinstall-required/154675) — 캐시 삭제 + Refresh + 재인스톨 워크어라운드
 ---
 
 ## 레포지토리 구조
