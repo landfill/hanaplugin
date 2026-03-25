@@ -27,6 +27,12 @@
 - CSV·XLSX 파일 또는 클립보드 데이터를 파싱 → 바·라인·파이·산점도·히트맵·트리맵·산키·퍼널 등 8종 차트 생성
 - Plotly.js 기반 인터랙티브 HTML 출력, `openpyxl` 의존성 자동 설치 지원 (Python 환경 없이도 안내 제공)
 
+### 5. pdf-to-markdown (PDF → 마크다운 변환)
+
+- **PDF 변환**, **PDF 텍스트 추출**, **PDF를 마크다운으로**, **PDF 파싱**이 필요할 때 사용
+- opendataloader-pdf 기반으로 일반 디지털 PDF / 스캔 PDF / 한국어 OCR / 복잡한 표 등 4가지 모드 자동 선택
+- Java·Python 환경 자동 점검 스크립트 포함, Hybrid 모드(OCR·수식·복잡한 표) 지원, 일괄 변환(배치) 가능
+
 ---
 
 ## 팀 마켓플레이스에 올리는 방법 (Cursor Enterprise / Teams)
@@ -68,7 +74,26 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 ### 3단계: 팀원이 플러그인 설치
 
 - 팀 마켓플레이스가 연결되면, 팀원은 Cursor 설정의 **Rules, Skills** 또는 **Plugins**에서 팀 마켓플레이스를 보고 **product-toolkit** 플러그인을 설치할 수 있습니다.
-- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의", "기획 컨설팅", "소크라테스", "차트 생성", "데이터 시각화" 등으로 스킬이 자동 후보로 뜹니다.
+- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의", "기획 컨설팅", "소크라테스", "차트 생성", "데이터 시각화", "PDF 변환", "PDF to markdown" 등으로 스킬이 자동 후보로 뜹니다.
+
+---
+
+## 알려진 이슈: 팀 마켓플레이스 Auto Refresh 미작동
+
+> **상태**: Cursor 팀 확인·추적 중 (2026-03-16 공식 응답)
+
+`Enable Auto Refresh`를 켜도 레포에 푸시한 스킬 추가/수정이 Cursor에 자동 반영되지 않는 [버그가 보고](https://forum.cursor.com/t/team-marketplace-auto-refresh-does-not-pick-up-plugin-changes-manual-refresh-cache-clear-reinstall-required/154675)되어 있습니다 (2026-03-13).
+
+**업데이트를 반영하려면 아래 3단계를 수동으로 수행해야 합니다:**
+
+```bash
+# 1. 플러그인 캐시 삭제
+rm -rf ~/.cursor/plugins/cache/<marketplace>/<plugin>/<ref>
+
+# 2. Marketplace Settings → Plugin Repository → Refresh 클릭
+
+# 3. 플러그인 언인스톨 후 재인스톨
+```
 
 ---
 
@@ -78,6 +103,7 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 - [팀 마켓플레이스 안내](https://cursor.com/docs/plugins#team-marketplaces)
 - [플러그인 빌드 가이드](https://cursor.com/docs/plugins/building.md)
 - [팀 마켓플레이스 Refresh 트러블슈팅 (포럼)](https://forum.cursor.com/t/team-marketplace-refresh-failing-since-mar-7-worked-fine-until-mar-6-public-repo-no-github-app-connected/154643) — 2.6 이후 `source` 경로 파싱 변경, 올바른 디렉터리 구조 등 해결 사례
+- [Auto Refresh 미작동 버그 (포럼)](https://forum.cursor.com/t/team-marketplace-auto-refresh-does-not-pick-up-plugin-changes-manual-refresh-cache-clear-reinstall-required/154675) — 캐시 삭제 + Refresh + 재인스톨 워크어라운드
 ---
 
 ## 레포지토리 구조
@@ -99,11 +125,14 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 │           └── socrates/
 │               ├── SKILL.md
 │               └── references/
-│           └── tabular-to-chart/
+│           ├── tabular-to-chart/
+│           │   ├── SKILL.md
+│           │   ├── scripts/
+│           │   ├── examples/
+│           │   └── references/
+│           └── pdf-to-markdown/
 │               ├── SKILL.md
-│               ├── scripts/
-│               ├── examples/
-│               └── references/
+│               └── scripts/
 ├── .gitignore
 └── README.md
 ```
