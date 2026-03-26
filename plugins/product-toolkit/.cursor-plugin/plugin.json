@@ -1,8 +1,8 @@
 {
   "name": "product-toolkit",
   "displayName": "Product Toolkit",
-  "version": "1.4.0",
-  "description": "프로덕트 기획자를 위한 스킬셋. 시장조사/기획, 태깅 정의서 자동 생성, 소크라테스식 기획 컨설팅, 테이블 데이터 시각화, PDF→마크다운 변환.",
+  "version": "1.5.0",
+  "description": "프로덕트 기획자를 위한 스킬셋. 시장조사/기획, 태깅 정의서 자동 생성, 소크라테스식 기획 컨설팅, 테이블 데이터 시각화, PDF→마크다운 변환, Figma 캡처(로컬/외부 웹페이지).",
   "author": {
     "name": "손님, 김님"
   },
@@ -11,6 +11,9 @@
     "product-research",
     "market-research",
     "tagging-definition",
+    "event-registry",
+    "shared-event",
+    "tagging-validation",
     "socrates",
     "vibe-coding",
     "chart",
@@ -19,6 +22,10 @@
     "pdf",
     "pdf-to-markdown",
     "pdf-convert",
-    "ocr"
+    "ocr",
+    "figma",
+    "figma-capture",
+    "html-to-design",
+    "cdp"
   ]
 }

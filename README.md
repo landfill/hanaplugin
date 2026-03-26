@@ -33,6 +33,13 @@
 - opendataloader-pdf 기반으로 일반 디지털 PDF / 스캔 PDF / 한국어 OCR / 복잡한 표 등 4가지 모드 자동 선택
 - Java·Python 환경 자동 점검 스크립트 포함, Hybrid 모드(OCR·수식·복잡한 표) 지원, 일괄 변환(배치) 가능
 
+### 6. figma-capture (웹페이지 → Figma 캡처)
+
+- **Figma로 보내줘**, **Figma에 캡처**, **HTML to Figma**, **웹페이지 Figma 변환**이 필요할 때 사용
+- LOCAL(localhost/HTML 파일): Chrome 해시 URL + capture.js 방식으로 캡처
+- EXTERNAL(외부 https): Chrome CDP 번들 스크립트로 headless 캡처 (Playwright 불필요, Node.js v22+ 내장 WebSocket 사용)
+- 선행 조건: Figma MCP, Chrome, Node.js v22+
+
 ---
 
 ## 팀 마켓플레이스에 올리는 방법 (Cursor Enterprise / Teams)
@@ -74,7 +81,7 @@ Cursor **Teams**·**Enterprise** 플랜에서는 **팀 전용 마켓플레이스
 ### 3단계: 팀원이 플러그인 설치
 
 - 팀 마켓플레이스가 연결되면, 팀원은 Cursor 설정의 **Rules, Skills** 또는 **Plugins**에서 팀 마켓플레이스를 보고 **product-toolkit** 플러그인을 설치할 수 있습니다.
-- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의", "기획 컨설팅", "소크라테스", "차트 생성", "데이터 시각화", "PDF 변환", "PDF to markdown" 등으로 스킬이 자동 후보로 뜹니다.
+- 채팅에서 "시장조사", "프로덕트 기획", "아이디어 검증", "태깅 정의서", "태깅 정의", "기획 컨설팅", "소크라테스", "차트 생성", "데이터 시각화", "PDF 변환", "PDF to markdown", "Figma로 보내줘", "Figma 캡처" 등으로 스킬이 자동 후보로 뜹니다.
 
 ---
 
@@ -130,7 +137,10 @@ rm -rf ~/.cursor/plugins/cache/<marketplace>/<plugin>/<ref>
 │           │   ├── scripts/
 │           │   ├── examples/
 │           │   └── references/
-│           └── pdf-to-markdown/
+│           ├── pdf-to-markdown/
+│           │   ├── SKILL.md
+│           │   └── scripts/
+│           └── figma-capture/
 │               ├── SKILL.md
 │               └── scripts/
 ├── .gitignore
