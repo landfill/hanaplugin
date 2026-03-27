@@ -20,24 +20,41 @@
 import http from "node:http";
 import { execSync, spawn } from "node:child_process";
 import { platform } from "node:os";
+import { parseArgs as nodeParseArgs } from "node:util";
 
 // ── Args ──
 
 function parseArgs() {
-  const args = process.argv.slice(2);
-  const parsed = { port: 9222, timeout: 30, headless: true };
-  for (let i = 0; i < args.length; i++) {
-    if (args[i] === "--url") parsed.url = args[++i];
-    else if (args[i] === "--capture-id") parsed.captureId = args[++i];
-    else if (args[i] === "--port") parsed.port = Number(args[++i]);
-    else if (args[i] === "--timeout") parsed.timeout = Number(args[++i]);
-    else if (args[i] === "--no-headless") parsed.headless = false;
-  }
-  if (!parsed.url || !parsed.captureId) {
-    console.error("Usage: node figma-capture-external.mjs --url <URL> --capture-id <captureId> [--port 9222] [--timeout 30]");
+  try {
+    const { values } = nodeParseArgs({
+      options: {
+        url: { type: "string" },
+        "capture-id": { type: "string" },
+        port: { type: "string", default: "9222" },
+        timeout: { type: "string", default: "30" },
+        "no-headless": { type: "boolean", default: false },
+      },
+    });
+
+    const parsed = {
+      url: values.url,
+      captureId: values["capture-id"],
+      port: Number(values.port),
+      timeout: Number(values.timeout),
+      headless: !values["no-headless"],
+    };
+
+    if (!parsed.url || !parsed.captureId) {
+      throw new Error("Missing required arguments: --url and --capture-id");
+    }
+    return parsed;
+  } catch (err) {
+    console.error(`Error: ${err.message}`);
+    console.error(
+      "Usage: node figma-capture-external.mjs --url <URL> --capture-id <captureId> [--port 9222] [--timeout 30] [--no-headless]"
+    );
     process.exit(1);
   }
-  return parsed;
 }
 
 const { url, captureId, port, timeout, headless } = parseArgs();
@@ -84,7 +101,7 @@ async function launchChrome(debugPort) {
     `--remote-debugging-port=${debugPort}`,
     "--no-first-run",
     "--no-default-browser-check",
-    "--user-data-dir=" + (platform() === "win32" ? "%TEMP%\\figma-cdp" : "/tmp/figma-cdp"),
+    "--user-data-dir=" + (platform() === "win32" ? `${process.env.TEMP || process.env.TMP || "C:\\Temp"}\\figma-cdp` : "/tmp/figma-cdp"),
   ];
   if (headless) chromeArgs.push("--headless=new");
   chromeArgs.push("about:blank");
