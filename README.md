@@ -14,6 +14,7 @@
 - **태깅 정의서 작성**, **이벤트 정의**, **프로퍼티 정의**, **Amplitude 태깅 기획**이 필요할 때 사용
 - 대화형 인터뷰로 태깅 항목 수집 → 마크다운 데이터 파일 생성 → PPTX/XLSX 자동 변환
 - 템플릿 기반 슬라이드 복제로 일관된 서식 보장, 프로젝트 루트 자동 탐지로 이미지 경로 무관하게 삽입
+- **의존성**: Python 필요 (PPT/엑셀 생성 시). `python-pptx`, `openpyxl`, `Pillow`는 venv 자동 생성 후 런타임 설치. Python 미설치 시 마크다운 표 채팅 출력으로 폴백
 
 ### 3. socrates (소크라테스식 기획 컨설팅)
 
@@ -25,13 +26,45 @@
 
 - **CSV/Excel 데이터 시각화**, **차트 생성**, **보고서용 그래프**가 필요할 때 사용
 - CSV·XLSX 파일 또는 클립보드 데이터를 파싱 → 바·라인·파이·산점도·히트맵·트리맵·산키·퍼널 등 8종 차트 생성
-- Plotly.js 기반 인터랙티브 HTML 출력, `openpyxl` 의존성 자동 설치 지원 (Python 환경 없이도 안내 제공)
+- Plotly.js 기반 인터랙티브 HTML 출력, `openpyxl` 의존성 자동 설치 지원
+- **의존성**: Python 필요 (스크립트 모드). 핵심 스크립트는 Python 표준 라이브러리만 사용, 복잡한 xlsx 파싱 시만 `openpyxl` 자동 설치. Python 미설치 시 LLM이 HTML/Mermaid를 직접 생성하는 폴백 모드 제공
 
 ### 5. pdf-to-markdown (PDF → 마크다운 변환)
 
 - **PDF 변환**, **PDF 텍스트 추출**, **PDF를 마크다운으로**, **PDF 파싱**이 필요할 때 사용
 - opendataloader-pdf 기반으로 일반 디지털 PDF / 스캔 PDF / 한국어 OCR / 복잡한 표 등 4가지 모드 자동 선택
-- Java·Python 환경 자동 점검 스크립트 포함, Hybrid 모드(OCR·수식·복잡한 표) 지원, 일괄 변환(배치) 가능
+- Java·Python 환경 자동 점검 후 미설치 시 자동 설치를 시도하며, Hybrid 모드(OCR·수식·복잡한 표) 지원, 일괄 변환(배치) 가능
+- **의존성**: Python 3.10+, Java 11+, `opendataloader-pdf` (pip). 세 가지 모두 미설치 시 스킬이 자동 설치를 시도함
+- **권장**: 한국어 PDF는 커스텀 폰트/글리프 매핑 실패로 인코딩이 깨질 수 있으므로, 처음부터 `pip install -U "opendataloader-pdf[hybrid]"` (OCR 포함, ~500MB)로 설치 권장
+
+---
+
+## 스킬별 전제 조건
+
+Cursor AI가 설치된 Mac/Windows 환경 기준입니다. 모든 스킬은 미설치 의존성을 감지하면 자동 설치를 시도하거나 폴백 모드를 제공합니다.
+
+### 의존성 비교
+
+| | pdf-to-markdown | tagging-definition | tabular-to-chart |
+|---|---|---|---|
+| **Python** | 필수 (3.10+) | PPT/엑셀 생성 시 필수 | 스크립트 모드 시 필수 |
+| **Java** | 필수 (11+) | 불필요 | 불필요 |
+| **pip 패키지** | `opendataloader-pdf` (수동 pip) | `python-pptx` `openpyxl` `Pillow` (venv 자동) | `openpyxl` (venv 자동, xlsx만) |
+| **미설치 시 자동 설치** | Python·Java·pip 모두 시도 | Python 시도, pip 패키지 자동 | Python 안내, pip 패키지 자동 |
+| **Python 없을 때 폴백** | 자동 설치 시도 → 실패 시 중단 | 마크다운 표 채팅 출력 | LLM이 HTML/Mermaid 직접 생성 |
+
+> `product-research`, `socrates`는 외부 의존성이 없습니다.
+
+### OS별 수동 설치 (자동 설치 실패 시)
+
+| 항목 | Windows | Mac |
+|---|---|---|
+| Python | `winget install Python.Python.3.12` 또는 [python.org](https://www.python.org/downloads/) | `brew install python3` 또는 [python.org](https://www.python.org/downloads/) |
+| Java 11+ | `winget install EclipseAdoptium.Temurin.21.JDK` | `brew install --cask temurin` |
+| opendataloader-pdf | `pip install -U opendataloader-pdf` | `pip install -U opendataloader-pdf` |
+| opendataloader-pdf (OCR) | `pip install -U "opendataloader-pdf[hybrid]"` | `pip install -U "opendataloader-pdf[hybrid]"` |
+
+> **한국어 PDF를 주로 다루는 환경에서는 `opendataloader-pdf[hybrid]` 설치를 권장합니다.** 기본 설치만으로는 커스텀 폰트의 한국어 글리프를 유니코드로 매핑하지 못해 텍스트가 깨질 수 있으며, Hybrid(OCR) 모드로 재변환해야 합니다. 처음부터 hybrid로 설치하면 재변환 없이 바로 정상 추출이 가능합니다.
 
 ---
 
