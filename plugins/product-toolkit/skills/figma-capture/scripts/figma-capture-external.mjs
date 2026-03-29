@@ -17,8 +17,9 @@
  *   5. 15초 대기 후 종료 (캡처 데이터 네트워크 전송 완료 대기)
  */
 
+import fs from "node:fs";
 import http from "node:http";
-import { execSync, spawn } from "node:child_process";
+import { spawn } from "node:child_process";
 import { platform } from "node:os";
 import { parseArgs as nodeParseArgs } from "node:util";
 
@@ -72,7 +73,7 @@ function getChromePath() {
       "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe",
     ];
     for (const p of paths) {
-      try { execSync(`if exist "${p}" echo found`, { stdio: "pipe" }); return p; } catch {}
+      if (fs.existsSync(p)) return p;
     }
   }
   // Linux fallback
@@ -94,7 +95,7 @@ function isChromeDebugging(debugPort) {
 async function launchChrome(debugPort) {
   if (await isChromeDebugging(debugPort)) {
     console.log(`Chrome already running on port ${debugPort}`);
-    return null;
+    return { process: null, launchedByUs: false };
   }
   console.log("Launching Chrome with remote debugging...");
   const chromeArgs = [
@@ -112,7 +113,7 @@ async function launchChrome(debugPort) {
   // Wait for CDP to be ready
   for (let i = 0; i < 20; i++) {
     await sleep(500);
-    if (await isChromeDebugging(debugPort)) return chrome;
+    if (await isChromeDebugging(debugPort)) return { process: chrome, launchedByUs: true };
   }
   throw new Error("Chrome failed to start with remote debugging");
 }
@@ -205,110 +206,126 @@ class CDPSession {
 
 async function main() {
   // 1. Launch Chrome
-  await launchChrome(port);
+  const chrome = await launchChrome(port);
+  let cdp = null;
+  let targetId = null;
 
-  // 2. Create a new tab with the target URL (Chrome 130+ requires PUT)
-  const newTarget = await httpRequest(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, "PUT");
-  const wsUrl = newTarget.webSocketDebuggerUrl;
-  if (!wsUrl) throw new Error("No webSocketDebuggerUrl returned");
+  try {
+    // 2. Create a new tab with the target URL (Chrome 130+ requires PUT)
+    const newTarget = await httpRequest(`http://127.0.0.1:${port}/json/new?${encodeURIComponent(url)}`, "PUT");
+    targetId = newTarget.id;
+    const wsUrl = newTarget.webSocketDebuggerUrl;
+    if (!wsUrl) throw new Error("No webSocketDebuggerUrl returned");
 
-  console.log(`Navigating to: ${url}`);
-  const cdp = new CDPSession(wsUrl);
-  await cdp.ready();
+    console.log(`Navigating to: ${url}`);
+    cdp = new CDPSession(wsUrl);
+    await cdp.ready();
 
-  // 3. Enable Page events & wait for load
-  await cdp.send("Page.enable");
+    // 3. Enable Page events & wait for load
+    await cdp.send("Page.enable");
 
-  // If the page is still loading, wait for load event
-  // Give a grace period for already-loaded pages
-  const loadPromise = cdp.once("Page.loadEventFired");
-  const frameResult = await cdp.send("Page.getFrameTree");
-  const mainFrameUrl = frameResult?.frameTree?.frame?.url;
+    // If the page is still loading, wait for load event
+    // Give a grace period for already-loaded pages
+    const loadPromise = cdp.once("Page.loadEventFired");
+    const frameResult = await cdp.send("Page.getFrameTree");
+    const mainFrameUrl = frameResult?.frameTree?.frame?.url;
 
-  if (!mainFrameUrl || mainFrameUrl === "about:blank" || mainFrameUrl === "") {
-    // Page hasn't navigated yet — navigate
-    await cdp.send("Page.navigate", { url });
-    await loadPromise;
-  } else {
-    // New tab already navigated — wait briefly or check if loaded
-    await Promise.race([loadPromise, sleep(3000)]);
-  }
-  console.log("Page loaded");
+    if (!mainFrameUrl || mainFrameUrl === "about:blank" || mainFrameUrl === "") {
+      // Page hasn't navigated yet — navigate
+      await cdp.send("Page.navigate", { url });
+      await loadPromise;
+    } else {
+      // New tab already navigated — wait briefly or check if loaded
+      await Promise.race([loadPromise, sleep(3000)]);
+    }
+    console.log("Page loaded");
 
-  // 4. Remove CSP headers that might block script injection
-  await cdp.send("Page.setBypassCSP", { enabled: true });
+    // 4. Remove CSP headers that might block script injection
+    await cdp.send("Page.setBypassCSP", { enabled: true });
 
-  // 5. Inject capture.js via fetch + eval (bypasses CSP issues with <script> tags)
-  console.log("Injecting capture.js...");
-  await cdp.send("Runtime.evaluate", {
-    expression: `
-      fetch('https://mcp.figma.com/mcp/html-to-design/capture.js')
-        .then(r => r.text())
-        .then(code => {
-          const script = document.createElement('script');
-          script.textContent = code;
-          document.head.appendChild(script);
+    // 5. Inject capture.js via fetch + eval (bypasses CSP issues with <script> tags)
+    console.log("Injecting capture.js...");
+    await cdp.send("Runtime.evaluate", {
+      expression: `
+        fetch('https://mcp.figma.com/mcp/html-to-design/capture.js')
+          .then(r => r.text())
+          .then(code => {
+            const script = document.createElement('script');
+            script.textContent = code;
+            document.head.appendChild(script);
+          })
+      `,
+      awaitPromise: true,
+      returnByValue: true,
+    });
+
+    // 6. Wait for window.figma.captureForDesign to be available
+    console.log("Waiting for capture.js to initialize...");
+    const safeCaptureId = JSON.stringify(captureId);
+    const safeEndpoint = JSON.stringify(`https://mcp.figma.com/mcp/capture/${captureId}/submit`);
+
+    const checkResult = await cdp.send("Runtime.evaluate", {
+      expression: `
+        new Promise((resolve) => {
+          let attempts = 0;
+          const check = setInterval(() => {
+            attempts++;
+            if (window.figma && typeof window.figma.captureForDesign === 'function') {
+              clearInterval(check);
+              resolve('ready');
+            } else if (attempts > 50) {
+              clearInterval(check);
+              resolve('not_found');
+            }
+          }, 100);
         })
-    `,
-    awaitPromise: true,
-    returnByValue: true,
-  });
+      `,
+      awaitPromise: true,
+      returnByValue: true,
+    });
 
-  // 6. Wait for window.figma.captureForDesign to be available
-  console.log("Waiting for capture.js to initialize...");
-  const endpoint = `https://mcp.figma.com/mcp/capture/${captureId}/submit`;
+    if (checkResult?.result?.value === "not_found") {
+      throw new Error("window.figma.captureForDesign not available after 5s");
+    }
 
-  const checkResult = await cdp.send("Runtime.evaluate", {
-    expression: `
-      new Promise((resolve) => {
-        let attempts = 0;
-        const check = setInterval(() => {
-          attempts++;
-          if (window.figma && typeof window.figma.captureForDesign === 'function') {
-            clearInterval(check);
-            resolve('ready');
-          } else if (attempts > 50) {
-            clearInterval(check);
-            resolve('not_found');
-          }
-        }, 100);
-      })
-    `,
-    awaitPromise: true,
-    returnByValue: true,
-  });
+    // Fire-and-forget: captureForDesign의 Promise는 resolve되지 않으므로 await하지 않음
+    console.log(`Firing captureForDesign({ captureId: ${safeCaptureId} })...`);
+    await cdp.send("Runtime.evaluate", {
+      expression: `
+        (() => {
+          const captureId = ${safeCaptureId};
+          const endpoint = ${safeEndpoint};
+          window.figma.captureForDesign({
+            captureId: captureId,
+            endpoint: endpoint,
+            selector: 'body'
+          })
+            .then(() => console.log('figma-capture: submitted'))
+            .catch(e => console.error('figma-capture error:', e));
+        })()
+      `,
+      awaitPromise: false,
+      returnByValue: true,
+    });
 
-  if (checkResult?.result?.value === "not_found") {
-    throw new Error("window.figma.captureForDesign not available after 5s");
+    // 캡처 데이터 전송 대기 (네트워크 요청 완료까지)
+    console.log("Waiting 15s for capture data submission...");
+    await sleep(15000);
+    console.log("Capture submitted.");
+  } finally {
+    // Cleanup: close tab, CDP connection, and Chrome (if we launched it)
+    if (targetId) {
+      await httpRequest(`http://127.0.0.1:${port}/json/close/${targetId}`, "PUT").catch(() => {});
+    }
+    if (cdp) {
+      cdp.close();
+    }
+    if (chrome.launchedByUs && chrome.process) {
+      chrome.process.kill();
+      console.log("Chrome process terminated.");
+    }
+    console.log("Done.");
   }
-
-  // Fire-and-forget: captureForDesign의 Promise는 resolve되지 않으므로 await하지 않음
-  console.log(`Firing captureForDesign({ captureId: '${captureId}' })...`);
-  await cdp.send("Runtime.evaluate", {
-    expression: `
-      (() => {
-        window.figma.captureForDesign({
-          captureId: '${captureId}',
-          endpoint: '${endpoint}',
-          selector: 'body'
-        })
-          .then(() => console.log('figma-capture: submitted'))
-          .catch(e => console.error('figma-capture error:', e));
-      })()
-    `,
-    awaitPromise: false,
-    returnByValue: true,
-  });
-
-  // 캡처 데이터 전송 대기 (네트워크 요청 완료까지)
-  console.log("Waiting 15s for capture data submission...");
-  await sleep(15000);
-  console.log("Capture submitted.");
-
-  // 7. Close the tab
-  await httpRequest(`http://127.0.0.1:${port}/json/close/${newTarget.id}`, "PUT").catch(() => {});
-  cdp.close();
-  console.log("Done.");
 }
 
 main().catch((err) => {

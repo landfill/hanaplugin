@@ -13,7 +13,7 @@ allowed-tools: Bash, Glob, Grep, Read, Edit, Write
 
 | 조건 | 설명 |
 |------|------|
-| **Figma MCP** | Cursor에 `code_to_figma` (또는 `user-code_to_figma`) MCP 서버가 설정되어 있어야 함. `generate_figma_design` 도구로 captureId 발급 및 폴링에 사용. **이 MCP 없이는 LOCAL/EXTERNAL 모두 동작 불가.** |
+| **Figma MCP** | Cursor에 Figma MCP 서버가 설정되어 있어야 함 (서버명은 환경마다 다를 수 있음: `Figma`, `code_to_figma`, `user-code_to_figma` 등). `generate_figma_design` 도구로 captureId 발급 및 폴링에 사용. **이 MCP 없이는 LOCAL/EXTERNAL 모두 동작 불가.** |
 | **Chrome** | 시스템에 Google Chrome 설치 필요 |
 | **Node.js v22+** | EXTERNAL 캡처 시 CDP 스크립트 실행에 필요 (내장 WebSocket 사용) |
 
@@ -48,7 +48,7 @@ allowed-tools: Bash, Glob, Grep, Read, Edit, Write
 
 ### Step E1: captureId 발급
 
-**MCP 도구** (Cursor): 서버 `user-code_to_figma`, 도구 `generate_figma_design`
+**MCP 도구** (Cursor): Figma MCP 서버의 `generate_figma_design` 도구 사용
 - 첫 호출: `outputMode` 없이 호출 → 플랜/파일 옵션 확인
 - 둘째 호출: `outputMode: "existingFile"` + `fileKey` (또는 `newFile` + `fileName` / `planKey`)로 **captureId** 발급
 
@@ -133,7 +133,7 @@ sleep 2
 
 ### Step 3: Figma 출력 대상 + captureId
 
-**MCP 매핑:** Cursor에서 `user-code_to_figma` 서버의 **`generate_figma_design`** 도구 = 과거 표기 `mcp__figma__generate_figma_design` 과 동일 역할.
+**MCP 매핑:** Figma MCP 서버의 **`generate_figma_design`** 도구를 사용한다 (서버명은 환경에 따라 다름).
 
 1. **outputMode 없이** 한 번 호출 → 플랜/기존 파일 목록 등 옵션 수신  
 2. 사용자 선택 또는 인자 매칭 후, **`outputMode` + `fileKey`** (또는 `newFile` 등)로 다시 호출 → **captureId** 획득
@@ -181,7 +181,7 @@ open -na "Google Chrome" --args --incognito "$URL"
 
 - **공유해도 됨.** 로직(LOCAL vs EXTERNAL, MCP, `capture.js`, 폴링)은 OS와 무관합니다.  
 - **차이 나는 부분:** 포트 점검 명령, 브라우저 실행 경로(위 Windows / macOS 절).  
-- **`.mcp.json`의 Figma MCP 서버 키**는 사람마다 다를 수 있음(예: `code_to_figma`). Cursor는 도구 이름에 `user-` 접두사를 붙이는 경우가 있으므로, 스킬 문구의 `user-code_to_figma`는 **본인 환경의 MCP 목록에서 확인**해 맞출 것.  
+- **`.mcp.json`의 Figma MCP 서버 키**는 사람마다 다를 수 있음(예: `Figma`, `code_to_figma`). Cursor는 도구 이름에 `user-` 접두사를 붙이는 경우가 있으므로, **본인 환경의 MCP 목록에서 서버명을 확인**할 것.  
 - **외부 URL:** `scripts/figma-capture-external.mjs`는 **Windows / macOS 공통** (Node.js v22+ 와 Chrome만 있으면 됨).
 
 ### Step 5–6: 폴링 및 완료
