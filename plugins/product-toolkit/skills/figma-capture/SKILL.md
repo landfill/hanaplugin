@@ -17,6 +17,20 @@ allowed-tools: Bash, Glob, Grep, Read, Edit, Write
 | **Chrome** | 시스템에 Google Chrome 설치 필요 |
 | **Node.js v22+** | EXTERNAL 캡처 시 CDP 스크립트 실행에 필요 (내장 WebSocket 사용) |
 
+## Step -1: Figma MCP 연결 확인 (최초 1회)
+
+스킬 실행 전 `generate_figma_design` 도구가 사용 가능한지 확인한다.
+
+- **사용 가능** → Step 0으로 진행
+- **사용 불가 (도구 미발견 또는 인증 오류)** → 아래 메시지를 사용자에게 안내하고 **스킬을 중단**:
+
+> Figma MCP 서버가 연결되지 않았습니다.
+> 1. **Cursor Settings → Features → MCP** 에서 Figma 서버가 등록되어 있는지 확인하세요.
+> 2. 서버 옆 **Connect** 버튼을 클릭하여 브라우저 OAuth 인증을 완료하세요.
+> 3. 인증 완료 후 이 스킬을 다시 실행해 주세요.
+
+---
+
 ## Step 0: 대상 분류 (필수)
 
 | 유형 | 조건 | 허용되는 캡처 방법 |

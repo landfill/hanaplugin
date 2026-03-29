@@ -38,7 +38,7 @@
 - **Figma로 보내줘**, **Figma에 캡처**, **HTML to Figma**, **웹페이지 Figma 변환**이 필요할 때 사용
 - LOCAL(localhost/HTML 파일): Chrome 해시 URL + capture.js 방식으로 캡처
 - EXTERNAL(외부 https): Chrome CDP 번들 스크립트로 headless 캡처 (Playwright 불필요, Node.js v22+ 내장 WebSocket 사용)
-- 선행 조건: Figma MCP, Chrome, Node.js v22+
+- 선행 조건: Chrome, Node.js v22+ (Figma MCP는 플러그인에 번들되어 자동 등록, 최초 1회 OAuth 인증 필요)
 
 ---
 
@@ -122,6 +122,7 @@ rm -rf ~/.cursor/plugins/cache/<marketplace>/<plugin>/<ref>
 │   └── product-toolkit/
 │       ├── .cursor-plugin/
 │       │   └── plugin.json       ← 플러그인 메타데이터
+│       ├── mcp.json               ← MCP 서버 설정 (Figma)
 │       └── skills/
 │           ├── product-research/
 │           │   ├── SKILL.md
