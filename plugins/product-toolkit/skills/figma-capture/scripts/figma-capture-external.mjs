@@ -85,7 +85,14 @@ function isChromeDebugging(debugPort) {
     const req = http.request({ hostname: "127.0.0.1", port: debugPort, path: "/json/version", method: "GET" }, (res) => {
       let d = "";
       res.on("data", (c) => (d += c));
-      res.on("end", () => resolve(true));
+      res.on("end", () => {
+        try {
+          const info = JSON.parse(d);
+          resolve(typeof info.Browser === "string" && info.Browser.includes("Chrome"));
+        } catch {
+          resolve(false);
+        }
+      });
     });
     req.on("error", () => resolve(false));
     req.end();
