@@ -13,21 +13,29 @@ allowed-tools: Bash, Glob, Grep, Read, Edit, Write
 
 | 조건 | 설명 |
 |------|------|
-| **Figma MCP** | Cursor에 Figma MCP 서버가 설정되어 있어야 함 (서버명은 환경마다 다를 수 있음: `Figma`, `code_to_figma`, `user-code_to_figma` 등). `generate_figma_design` 도구로 captureId 발급 및 폴링에 사용. **이 MCP 없이는 LOCAL/EXTERNAL 모두 동작 불가.** |
-| **Chrome** | 시스템에 Google Chrome 설치 필요 |
+| **Figma MCP** | 이 플러그인의 `mcp.json`으로 자동 등록됨. 최초 1회 OAuth 인증만 필요. `generate_figma_design` 도구로 captureId 발급 및 폴링에 사용. |
+| **Chrome** | 시스템에 Google Chrome 설치 필요. LOCAL은 Edge(Chromium)도 가능하나, **EXTERNAL은 Chrome 전용** (CDP 스크립트가 Chrome만 탐지) |
 | **Node.js v22+** | EXTERNAL 캡처 시 CDP 스크립트 실행에 필요 (내장 WebSocket 사용) |
 
-## Step -1: Figma MCP 연결 확인 (최초 1회)
+## Step -1: Figma OAuth 확인 (최초 1회)
 
-스킬 실행 전 `generate_figma_design` 도구가 사용 가능한지 확인한다.
+스킬 실행 전 `generate_figma_design` 도구를 호출하여 인증 상태를 확인한다.
 
-- **사용 가능** → Step 0으로 진행
-- **사용 불가 (도구 미발견 또는 인증 오류)** → 아래 메시지를 사용자에게 안내하고 **스킬을 중단**:
+- **정상 응답** → Step 0으로 진행
+- **인증 오류** → 아래 메시지를 안내하고 **스킬을 중단**:
 
-> Figma MCP 서버가 연결되지 않았습니다.
-> 1. **Cursor Settings → Features → MCP** 에서 Figma 서버가 등록되어 있는지 확인하세요.
-> 2. 서버 옆 **Connect** 버튼을 클릭하여 브라우저 OAuth 인증을 완료하세요.
+> Figma 인증이 필요합니다.
+> 1. **Cursor Settings → Features → MCP** 에서 Figma 서버 옆 **Connect** 버튼을 클릭하세요.
+> 2. 브라우저에서 OAuth 인증을 완료하세요.
 > 3. 인증 완료 후 이 스킬을 다시 실행해 주세요.
+
+---
+
+## 입력 형식
+
+- `http://localhost:8001/admin.html` — localhost URL (→ LOCAL)
+- `projects/4cut_review_manga/admin.html` — 프로젝트 내 HTML 경로 (→ LOCAL)
+- `https://example.com/page` — 외부 사이트 (→ EXTERNAL)
 
 ---
 
@@ -35,7 +43,7 @@ allowed-tools: Bash, Glob, Grep, Read, Edit, Write
 
 | 유형 | 조건 | 허용되는 캡처 방법 |
 |------|------|-------------------|
-| **LOCAL** | `http://localhost`, `127.0.0.1`, `*.local` 이거나, 레포에서 **편집 가능한 HTML**로 서빙 가능 | 아래 **LOCAL 전용** Step 1–6 (Chrome + `#figmacapture` 해시) |
+| **LOCAL** | `http://localhost`, `127.0.0.1`, `*.local` 이거나, 레포에서 **편집 가능한 HTML**로 서빙 가능 | 아래 **LOCAL 전용** Step 1–5 (Chrome + `#figmacapture` 해시) |
 | **EXTERNAL** | 그 외 `https://` (타 도메인, 수정 불가) | **EXTERNAL 전용 Step E1–E3** (Chrome CDP 번들 스크립트). 해시만 붙여 여는 방식은 **실패**함 |
 
 **금지:** EXTERNAL에 대해 `https://example.com/...#figmacapture=...` 만으로 브라우저를 열지 말 것.
@@ -62,12 +70,12 @@ allowed-tools: Bash, Glob, Grep, Read, Edit, Write
 
 ```bash
 # headless (기본)
-node <이 스킬 경로>/scripts/figma-capture-external.mjs \
+node <이 SKILL.md와 같은 디렉토리>/scripts/figma-capture-external.mjs \
   --url "https://example.com/page" \
   --capture-id "<captureId>"
 
 # non-headless (브라우저 창 표시)
-node <이 스킬 경로>/scripts/figma-capture-external.mjs \
+node <이 SKILL.md와 같은 디렉토리>/scripts/figma-capture-external.mjs \
   --url "https://example.com/page" \
   --capture-id "<captureId>" \
   --no-headless
@@ -81,19 +89,12 @@ node <이 스킬 경로>/scripts/figma-capture-external.mjs \
 5. 15초 대기 (캡처 데이터 네트워크 전송 완료) 후 탭 닫기
 
 옵션: `--port <포트>` (기본 9222), `--timeout <초>` (기본 30), `--no-headless` (브라우저 창 표시)
+
 ### Step E3: 폴링
 
 아래 [폴링 공통](#폴링-공통-mcp)과 동일. 새 captureId를 만들지 말 것.
 
 > **참고:** EXTERNAL에서는 프로젝트 HTML에 `capture.js`를 직접 삽입할 수 없으므로 LOCAL Step 2는 건너뜁니다. CDP 스크립트가 런타임에 주입을 처리합니다.
-
----
-
-## 입력 형식
-
-- `http://localhost:8001/admin.html` — localhost URL
-- `projects/4cut_review_manga/admin.html` — 프로젝트 내 HTML 경로 (→ LOCAL)
-- `https://example.com/page` — 외부 사이트 (→ EXTERNAL)
 
 ---
 
@@ -110,10 +111,15 @@ node <이 스킬 경로>/scripts/figma-capture-external.mjs \
 2. 해당 폴더 서버 실행 여부:  
    - **Windows:** `netstat -ano | findstr :<port>`  
    - **macOS / Linux:** `lsof -i :<port>` 또는 `nc -z localhost <port> && echo open`  
-3. 없으면 빈 포트(8001–8099)로 HTTP 서버:
+3. 없으면 빈 포트(8001–8099)로 HTTP 서버 (Python 우선, 없으면 npx):
 
 ```bash
+# Python이 있으면
 python -m http.server <port> --directory "<folder>" &
+# Python이 없으면 (Node.js는 EXTERNAL 전제조건이므로 항상 있음)
+npx serve "<folder>" -l <port> &
+```
+```bash
 sleep 2
 ```
 
@@ -140,51 +146,27 @@ sleep 2
 
 ### Step 4: 브라우저로 캡처 URL 열기 (LOCAL만)
 
-**Windows — Git Bash:**
+캡처 URL 템플릿 (실제 값으로 치환):
 
-```bash
-"/c/Program Files/Google/Chrome/Application/chrome.exe" \
-  --incognito \
-  "http://localhost:<port>/<page>?v=$(date +%s)#figmacapture=<captureId>&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2F<captureId>%2Fsubmit&figmadelay=5000" &
+```
+http://localhost:<port>/<page>?v=<timestamp>#figmacapture=<captureId>&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2F<captureId>%2Fsubmit&figmadelay=5000
 ```
 
-**Windows — PowerShell (한 줄, URL은 실제 값으로 치환):**
+`?v=<timestamp>` — 캐시 버스트용 Unix timestamp. `figmadelay=5000` — capture.js 초기화 대기.
 
-```powershell
-& 'C:\Program Files\Google\Chrome\Application\chrome.exe' --incognito `
-  'http://localhost:<port>/<page>?v=' + [DateTimeOffset]::UtcNow.ToUnixTimeSeconds() + '#figmacapture=<captureId>&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2F<captureId>%2Fsubmit&figmadelay=5000'
-```
+OS별 실행 방법:
 
-Edge 사용 시 (PowerShell):
+| OS | 명령 |
+|----|------|
+| **macOS** | `open -na "Google Chrome" --args --incognito "$URL"` |
+| **Windows (Bash)** | `"/c/Program Files/Google/Chrome/Application/chrome.exe" --incognito "$URL" &` |
+| **Windows (PowerShell)** | `& 'C:\Program Files\Google\Chrome\Application\chrome.exe' --incognito $URL` |
+| **Windows (Edge, LOCAL만)** | `& 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' --inprivate $URL` |
 
-```powershell
-& 'C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe' --inprivate '<위와 동일 URL>'
-```
-
-**macOS — Chrome 시크릿으로 URL 열기** (Git Bash 없이 터미널에서):
-
-```bash
-URL='http://localhost:<port>/<page>?v='$(date +%s)'#figmacapture=<captureId>&figmaendpoint=https%3A%2F%2Fmcp.figma.com%2Fmcp%2Fcapture%2F<captureId>%2Fsubmit&figmadelay=5000'
-open -na "Google Chrome" --args --incognito "$URL"
-```
-
-또는 `open` 대신:
-
-```bash
-"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --incognito "$URL" &
-```
-
-**핵심:** `--incognito` / Edge는 `--inprivate`, `?v=` 캐시 버스트, `figmadelay=5000`, `start` / `Start-Process`로 URL 통째 전달 시 `&` 깨짐 주의 → **Chrome/Edge exe 직접 호출**  
+주의: `start` / `Start-Process`로 URL 통째 전달 시 `#` 이후 `&`가 쉘 연산자로 해석됨 → **브라우저 exe 직접 호출**할 것.
 브라우저 실행 후 **12초 대기** (`sleep 12` 또는 `Start-Sleep -Seconds 12`)
 
-### 팀 공유 시 (Cursor / OS)
-
-- **공유해도 됨.** 로직(LOCAL vs EXTERNAL, MCP, `capture.js`, 폴링)은 OS와 무관합니다.  
-- **차이 나는 부분:** 포트 점검 명령, 브라우저 실행 경로(위 Windows / macOS 절).  
-- **`.mcp.json`의 Figma MCP 서버 키**는 사람마다 다를 수 있음(예: `Figma`, `code_to_figma`). Cursor는 도구 이름에 `user-` 접두사를 붙이는 경우가 있으므로, **본인 환경의 MCP 목록에서 서버명을 확인**할 것.  
-- **외부 URL:** `scripts/figma-capture-external.mjs`는 **Windows / macOS 공통** (Node.js v22+ 와 Chrome만 있으면 됨).
-
-### Step 5–6: 폴링 및 완료
+### Step 5: 폴링 및 완료
 
 아래 [폴링 공통](#폴링-공통-mcp) 참고. 완료 후 capture.js는 HTML에 **유지** (제거 요청 시만 삭제). 임시 HTTP 서버를 켰다면 종료 여부 안내.
 
@@ -202,14 +184,5 @@ open -na "Google Chrome" --args --incognito "$URL"
 ```
 completed → Figma 링크 안내
 pending / processing → 5초 대기 후 재시도
+failed / 최대 횟수 초과 → captureId 재발급 (Step 3 또는 E1부터 재시도)
 ```
-
----
-
-## 주의사항
-
-- `file://` 는 지원하지 않음 → HTTP 서버 필요 (LOCAL)  
-- 동일 captureId는 **1회만** 유효  
-- LOCAL: capture.js는 blocking 로드 권장 (위 Step 2)  
-- 이전에 실패한 captureId는 재발급  
-- EXTERNAL: 반드시 번들 CDP 스크립트(`scripts/figma-capture-external.mjs`) 사용

@@ -17,6 +17,12 @@
  *   5. 15초 대기 후 종료 (캡처 데이터 네트워크 전송 완료 대기)
  */
 
+const [major] = process.versions.node.split(".").map(Number);
+if (major < 22) {
+  console.error(`Error: Node.js v22+ required (current: v${process.versions.node}). Built-in WebSocket is not available in older versions.`);
+  process.exit(1);
+}
+
 import fs from "node:fs";
 import http from "node:http";
 import { spawn } from "node:child_process";
